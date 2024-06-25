@@ -28,6 +28,8 @@ def handleNewCommand(ack, command, say): # bolt commands need to be passed as ar
 		say("That isn't a real time. Please send real times.")
 		return # complain to user and exit
 
-	say(f"Begin time: {begin}\nEnd time: {end}") # react to user by saying the info they just gave us
+	today = date.today().strftime("%m/%d/%y") # get the day that the user sent the message on in the format used by the sheet
+	hours = (end-begin).seconds / (60**2) # get the number of hours the user attended the meeting
+	say(f"{command['user_name']} {today} {hours}") # react to user by saying the info they just gave us
 
 SocketModeHandler(app, secrets["APP_TOKEN"]).start() # socket mode is superior in every way dont worry about it
