@@ -18,9 +18,16 @@ app = App(token=secrets["BOT_TOKEN"], signing_secret=secrets["SIGNING_SECRET"])
 @app.command("/attend") # `/attend` is the main command. This is the one thing the bot does, so it's fine.
 def handleNewCommand(ack, command, say): # bolt commands need to be passed as arguments
 	ack() # the api is a needy freak and demands constant acknowledgment
+
 	try: today, hours = getInfo.dayHours(command["text"])
 	except ValueError as e: say(e)
-	col = nameTable[command['user_name']]
-	say(f"sheet[{col}][{today}] = {hours}") # react to user by saying the info they just gave us
 
-SocketModeHandler(app, secrets["APP_TOKEN"]).start() # socket mode is superior in every way dont worry about it
+	col = nameTable[command['user_name']]
+	try: rows = sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"})["values"][0]
+	except KeyError: row = 4
+	try: row = rows.index(today)+4
+	except ValueError: row = len(rows)+4
+
+	say(f"sheet[{col}{row}] = {hours}") # react to user by saying the info they just gave us
+
+if __name__ == "__main__": SocketModeHandler(app, secrets["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it

@@ -15,7 +15,7 @@ def dayHours(message):
 		raise ValueError("That isn't a real time. Please send real times.")
 		return # complain to user and exit
 
-	today = date.today().strftime("%m/%d/%y") # get the day that the user sent the message on in the format used by the sheet
+	today = date.today().strftime("%-m/%-d/%Y") # get the day that the user sent the message on in the format used by the sheet
 	hours = (end-begin).seconds / (60**2) # get the number of hours the user attended the meeting
 	return today, hours
 
