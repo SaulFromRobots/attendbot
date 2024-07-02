@@ -1,3 +1,4 @@
 secrets
 credentials.json
 sheets.json
+__pycache__
