@@ -1,31 +1,24 @@
 from re import search
 from datetime import datetime, date, time
 
-def dayHours(message):
-	try: # grab the time data in a way that enforces the correct format is being used
-		times = search("^([0-9]+):([0-9]+)(am|pm) - ([0-9]+):([0-9]+)(am|pm)$", message).groups()
-	except AttributeError: # this fails if the user does not follow the correct format
-		raise ValueError("You formatted the message incorrectly. Please reference the example.")
-		return # complain to user and exit
+def dayHours(message): # Extract the day and hours from the message
+	times = search("^([0-9]+):([0-9]+)(am|pm) - ([0-9]+):([0-9]+)(am|pm)$", message).groups() # regex search for relevent info
 
-	try: # create datetimes for the beginning and end time
-		begin = datetime.combine(date.today(), time(hour=int(times[0])+(12 if times[2]=="pm" else 0), minute=int(times[1])))
-		end = datetime.combine(date.today(), time(hour=int(times[3])+(12 if times[5]=="pm" else 0), minute=int(times[4])))
-	except ValueError: # this fails if the user does not enter real times in the correct format
-		raise ValueError("That isn't a real time. Please send real times.")
-		return # complain to user and exit
+	# Create datetimes for the beginning and ending time (funilly enough, only the time needs to be accurate)
+	begin = datetime.combine(date.today(), time(hour=int(times[0])+(12 if times[2]=="pm" else 0), minute=int(times[1])))
+	end = datetime.combine(date.today(), time(hour=int(times[3])+(12 if times[5]=="pm" else 0), minute=int(times[4])))
 
-	today = date.today().strftime("%-m/%-d/%Y") # get the day that the user sent the message on in the format used by the sheet
+	day = date.today().strftime("%-m/%-d/%Y") # get the day that the user sent the message on in the format used by the sheet
 	hours = (end-begin).seconds / (60**2) # get the number of hours the user attended the meeting
-	return today, hours
+	return day, hours
 
-def letter(num):
+def letter(num): # convert number into sheets-style letter index (my beloathed)
 	chars = []
-	while num > 0:
-		a, b = divmod(num, 26)
-		num, d = (a - 1, b + 26) if b == 0 else (a, b)
-		chars.append(chr(ord('@')+d))
-	return ''.join(reversed(chars))
+	while num > 0: # repeat until algo done
+		a, b = divmod(num, 26) # remaining cycles and the letter's number
+		num, d = (a - 1, 26) if b == 0 else (a, b) # special condition for if there are no remaining cycles
+		chars.append(chr(ord('@')+d)) # actually convert to letter
+	return ''.join(reversed(chars)) # number bases are annoying
 
 genNameTable = lambda names: { # create a dict mapping guessed slack IDs to the column of spreadsheet the user appears in
 	name.split(" ")[0].lower()+"."+name.split(" ")[1][0].lower():letter(names.index(name)+3) for name in names[:names.index("")]

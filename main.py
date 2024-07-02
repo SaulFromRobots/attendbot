@@ -19,15 +19,27 @@ app = App(token=secrets["BOT_TOKEN"], signing_secret=secrets["SIGNING_SECRET"])
 def handleNewCommand(ack, command, say): # bolt commands need to be passed as arguments
 	ack() # the api is a needy freak and demands constant acknowledgment
 
-	try: today, hours = getInfo.dayHours(command["text"])
-	except ValueError as e: say(e)
+	try: day, hours = getInfo.dayHours(command["text"]) # use my function to extract the day and hours attended
+	except AttributeError: # this fails if the user does not follow the correct format
+		return say("You formatted the message incorrectly. Please reference the example.")
+	except ValueError: # this fails if the user does not enter real times in the correct format
+		return say("That isn't a real time. Please send real times.")
 
-	col = nameTable[command['user_name']]
-	try: rows = sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"})["values"][0]
-	except KeyError: row = 4
-	try: row = rows.index(today)+4
-	except ValueError: row = len(rows)+4
+	try: col = nameTable[command['user_name']] # Find the user's column in the table
+	except: return say("Something went wrong finding your name in the spreadsheet. I can only see your Slack username (not display name) so I don't actually know what your name *is*.")
 
-	say(f"sheet[{col}{row}] = {hours}") # react to user by saying the info they just gave us
+	needWriteDate = False
+	try: # Find the dates in the spreadsheet
+		rows = sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"})["values"][0]
+		try: row = rows.index(day)+4 # Find the day and calculate it's row
+		except ValueError:
+			row = len(rows)+4 # If the day isn't in the row, it should be the next one
+			needWriteDate = True
+	except KeyError: # If today is the first day in the spreadsheet
+		row = 4 # Data begins at row 4
+		needWriteDate = True
+	if (needWriteDate): sheetsAPI("update",{"range":f"Fall Attendance!A{row}:A{row}","valueInputOption":"RAW","body":{"values":[[day]]}}) # Write the date in the row if it wasn't found
+
+	say(f"sheet[{col}{row}] = {hours} (needWriteDate = {needWriteDate})") # react to user by saying the info they just gave us
 
 if __name__ == "__main__": SocketModeHandler(app, secrets["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
