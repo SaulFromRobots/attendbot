@@ -28,18 +28,10 @@ def handleNewCommand(ack, command, say): # bolt commands need to be passed as ar
 	try: col = nameTable[command['user_name']] # Find the user's column in the table
 	except: return say("Something went wrong finding your name in the spreadsheet. I can only see your Slack username (not display name) so I don't actually know what your name *is*.")
 
-	needWriteDate = False
-	try: # Find the dates in the spreadsheet
-		rows = sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"})["values"][0]
-		try: row = rows.index(day)+4 # Find the day and calculate it's row
-		except ValueError:
-			row = len(rows)+4 # If the day isn't in the row, it should be the next one
-			needWriteDate = True
-	except KeyError: # If today is the first day in the spreadsheet
-		row = 4 # Data begins at row 4
-		needWriteDate = True
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): sheetsAPI("update",{"range":f"Fall Attendance!A{row}:A{row}","valueInputOption":"RAW","body":{"values":[[day]]}}) # Write the date in the row if it wasn't found
 
+	sheetsAPI("update",{"range":f"Fall Attendance!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	say(f"sheet[{col}{row}] = {hours} (needWriteDate = {needWriteDate})") # react to user by saying the info they just gave us
 
 if __name__ == "__main__": SocketModeHandler(app, secrets["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
