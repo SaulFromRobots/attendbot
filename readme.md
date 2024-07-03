@@ -22,12 +22,15 @@ APP_TOKEN=xapp-...
 BOT_TOKEN=xoxb-...
 SIGNING_SECRET=...
 SHEET_ID=  .  .  .
+TABLE=   .   .   .
+ADMIN= ID ID ID ID
 ```
 
 You also need a Google Sheets `credentials.json` API key with the "https://www.googleapis.com/auth/spreadsheets" scope. The process is unnecessarily convoluted, just [read the documentation](https://developers.google.com/sheets/api/quickstart/python#enable_the_api).
 
 ## Usage
 
-The bot uses the commands `/attend` and `/meeting`. The following are the argument formats, with brackets indicating optional portions.
-- `/attend [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am]`: Set your clock in and clock out times on the provided day (or today if date is not provided).
-- `/meeting [MM/DD/YYYY] HH`: Add ether today or the provided date to the spreadsheet with the specified amount of total meeting hours.
+The bot uses the commands `/attend` and `/meeting`.
+Both of them take arguments in the format `[MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am]`. Anything in brackets is optional. The first word is a date in month-day-year format with slash separators, and it defaults to the current day when omitted. The second and third words are the beginning and end times. Only the hour portion is required, if the colon-minutes portion is omitted it defaults to ":00" and if "am" or "pm" are omitted then they default to "am" on the first time and "pm" on the second. Do not put any separators between the times.
+
+`/attend` and `/meeting` are almost identical, in that they both find the number of hours between the start and end times and put that time in the appropriate row. They differ in that `/attend` uses the column marked with your slack ID while `/meeting` always uses the "Total Meeting Hours" column. Also, `/meeting` requires that the user be in the programs "admin" list, as it will create rows in the spreadsheet if they are missing while `/attend` will simply inform you that the row is missing.
