@@ -1,5 +1,6 @@
 #! /usr/bin/env nix-shell
 #! nix-shell -i python3 -p python312Packages.slack-bolt python312Packages.google-api-python-client python312Packages.google-auth-httplib2 python312Packages.google-auth-oauthlib
+from re import match
 from datetime import date
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
@@ -18,7 +19,7 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 	ack() # the api is a needy freak and demands constant acknowledgment
 
 	try: day, hours = getInfo.dayHours(command["text"]) # use my function to extract the day and hours attended
-	except AttributeError: return say("You formatted the message incorrectly. Messages must be in [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][am/pm] format (brackets indicate optional portions).")
+	except AttributeError: return say("You formatted the message incorrectly.")
 	except ValueError: return say("That isn't a real time. Please send real time.")
 
 	try: col = getInfo.letter(sheetsAPI("get",{"range":"Fall Attendance!C1:1"})["values"][0].index(command['user_name'])+3)
@@ -28,7 +29,7 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 	if (needWriteDate): return say(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
 	sheetsAPI("update",{"range":f"Fall Attendance!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
-	say(f"sheet[{col}{row}] = {hours}") # react to user by saying the info they just gave us
+	say(f"You attended on {day} for {hours} hours.") # react to user by saying the info they just gave us
 
 @app.command("/meeting")
 def attend(ack, command, say):

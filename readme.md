@@ -28,4 +28,6 @@ You also need a Google Sheets `credentials.json` API key with the "https://www.g
 
 ## Usage
 
-Simply run the command `/attend` in a room with the an argument in the format `HH:MMxm - HH:MMxm`. A common example is `/attend 10:00am - 2:00pm`. This will add the attendance data to the spreadsheet signified by `SHEET_ID` if said spreadsheet has the correct format.
+The bot uses the commands `/attend` and `/meeting`. The following are the argument formats, with brackets indicating optional portions.
+- `/attend [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am]`: Set your clock in and clock out times on the provided day (or today if date is not provided).
+- `/meeting [MM/DD/YYYY] HH`: Add ether today or the provided date to the spreadsheet with the specified amount of total meeting hours.
