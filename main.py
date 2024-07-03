@@ -18,14 +18,14 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 	ack() # the api is a needy freak and demands constant acknowledgment
 
 	try: day, hours = getInfo.dayHours(command["text"]) # use my function to extract the day and hours attended
-	except AttributeError: return say("You formatted the message incorrectly. Please reference the example.")
-	except ValueError: return say("That isn't a real time. Please send real times.")
+	except AttributeError: return say("You formatted the message incorrectly. Messages must be in [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][am/pm] format (brackets indicate optional portions).")
+	except ValueError: return say("That isn't a real time. Please send real time.")
 
 	try: col = getInfo.letter(sheetsAPI("get",{"range":"Fall Attendance!C1:1"})["values"][0].index(command['user_name'])+3)
 	except: return say("Something went wrong finding your name in the spreadsheet.")
 
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"}), day)
-	if (needWriteDate): return say("{day} is not on the spreadsheet, attendance is not being counted for that day.")
+	if (needWriteDate): return say(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
 	sheetsAPI("update",{"range":f"Fall Attendance!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	say(f"sheet[{col}{row}] = {hours}") # react to user by saying the info they just gave us

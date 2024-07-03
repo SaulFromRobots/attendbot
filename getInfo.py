@@ -1,15 +1,15 @@
-from re import search
+from re import match
 from datetime import datetime, date, time
 
 def dayHours(message): # Extract the day and hours from the message
-	times = search("^([0-9]+):([0-9]+)(am|pm) - ([0-9]+):([0-9]+)(am|pm)$", message).groups() # regex search for relevent info
+	components = match("(?P<date>[0-9]+/[0-9]+/[0-9]+ )?(?P<startHour>[0-9]+)(:(?P<startMinute>[0-9]+))?(?P<startAfternoon>am|pm)? (?P<endHour>[0-9]+)(:(?P<endMinute>[0-9]+))?(?P<endAfternoon>am|pm)?", message) # regex match for relevent info
 
 	# Create datetimes for the beginning and ending time (funilly enough, only the time needs to be accurate)
-	begin = datetime.combine(date.today(), time(hour=int(times[0])+(12 if times[2]=="pm" else 0), minute=int(times[1])))
-	end = datetime.combine(date.today(), time(hour=int(times[3])+(12 if times[5]=="pm" else 0), minute=int(times[4])))
+	start = datetime.combine(date.today(), time(hour=int(components.group("startHour"))+(12 if (components.group("startAfternoon") or "am") == "pm" else 0), minute=int(components.group("startMinute") or 0)))
+	end = datetime.combine(date.today(), time(hour=int(components.group("endHour"))+(12 if (components.group("endAfternoon") or "pm") == "pm" else 0), minute=int(components.group("endMinute") or 0)))
 
-	day = date.today().strftime("%-m/%-d/%Y") # get the day that the user sent the message on in the format used by the sheet
-	hours = (end-begin).seconds / (60**2) # get the number of hours the user attended the meeting
+	day = (components.group("date") or date.today().strftime("%-m/%-d/%Y")).strip() # get the day that the user sent the message on in the format used by the sheet
+	hours = (end-start).seconds / (60**2) # get the number of hours the user attended the meeting
 	return day, hours
 
 def letter(num): # convert number into sheets-style letter index (my beloathed)
