@@ -9,7 +9,7 @@ def dayHours(message): # Extract the day and hours from the message
 	end = datetime.combine(date.today(), time(hour=int(components.group("endHour"))+(12 if (components.group("endAfternoon") or "pm") == "pm" else 0), minute=int(components.group("endMinute") or 0)))
 
 	day = (components.group("date") or date.today().strftime("%-m/%-d/%Y")).strip() # get the day that the user sent the message on in the format used by the sheet
-	hours = (end-start).seconds / (60**2) # get the number of hours the user attended the meeting
+	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) and datetime.combine(date.today(), time(hour=13)) < end) # get the number of hours the user attended the meeting, subtracting lunch if required
 	return day, hours
 
 def letter(num): # convert number into sheets-style letter index (my beloathed)
