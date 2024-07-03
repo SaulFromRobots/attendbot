@@ -33,10 +33,11 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 @app.command("/meeting")
 def attend(ack, command, say):
 	ack()
-	day = date.today().strftime("%-m/%-d/%Y") if command["text"] == "" else command["text"]
+	components = match("(?P<date>[0-9]+/[0-9]+/[0-9]+ )?(?P<tmh>[0-9]+)", command["text"])
+	day = (components.group("date") or date.today().strftime("%-m/%-d/%Y")).strip()
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate):
-		sheetsAPI("update",{"range":f"Fall Attendance!A{row}:A{row}","valueInputOption":"RAW","body":{"values":[[day]]}})
+		sheetsAPI("update",{"range":f"Fall Attendance!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, components.group("tmh")]]}})
 		say(f"{day} added to the spreadsheet.")
 	else: say(f"{day} is already row {row} in the spreadsheet.")
 
