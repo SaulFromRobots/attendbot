@@ -16,7 +16,7 @@ You must use this script with a Slack app
 - the scopes `channels:read`, `chat:write`, and `commands`
 - the slash command `/attend`
 
-There must be a secrets file with the following keys
+There must be a keys file with the following keys
 ```
 APP_TOKEN=xapp-...
 BOT_TOKEN=xoxb-...
