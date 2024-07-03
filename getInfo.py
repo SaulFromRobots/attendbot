@@ -20,10 +20,6 @@ def letter(num): # convert number into sheets-style letter index (my beloathed)
 		chars.append(chr(ord('@')+d)) # actually convert to letter
 	return ''.join(reversed(chars)) # number bases are annoying
 
-genNameTable = lambda names: { # create a dict mapping guessed slack IDs to the column of spreadsheet the user appears in
-	name.split(" ")[0].lower()+"."+name.split(" ")[1][0].lower():letter(names.index(name)+3) for name in names[:names.index("")]
-} # kindof an awful algo but it's startup time so idc
-
 def findDayRow(sheetsApiResponse, day): # Find the dates in the spreadsheet
 	needWriteDate = False
 	try: # Find the dates in the api response

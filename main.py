@@ -9,9 +9,6 @@ import getInfo
 # create a lambda to simplify the madness
 sheetsAPI=lambda method,args:getattr(build("sheets","v4",credentials=sheetsCreds).spreadsheets().values(),method)(**({"spreadsheetId":secrets["SHEET_ID"]}|args)).execute()
 
-# get a table mapping slack IDs to col
-nameTable = getInfo.genNameTable(sheetsAPI("get", {"range":"Fall Attendance!C1:1"})["values"][0])
-
 # declare a slack app
 app = App(token=secrets["BOT_TOKEN"], signing_secret=secrets["SIGNING_SECRET"])
 
@@ -20,13 +17,11 @@ def handleNewCommand(ack, command, say): # bolt commands need to be passed as ar
 	ack() # the api is a needy freak and demands constant acknowledgment
 
 	try: day, hours = getInfo.dayHours(command["text"]) # use my function to extract the day and hours attended
-	except AttributeError: # this fails if the user does not follow the correct format
-		return say("You formatted the message incorrectly. Please reference the example.")
-	except ValueError: # this fails if the user does not enter real times in the correct format
-		return say("That isn't a real time. Please send real times.")
+	except AttributeError: return say("You formatted the message incorrectly. Please reference the example.")
+	except ValueError: return say("That isn't a real time. Please send real times.")
 
-	try: col = nameTable[command['user_name']] # Find the user's column in the table
-	except: return say("Something went wrong finding your name in the spreadsheet. I can only see your Slack username (not display name) so I don't actually know what your name *is*.")
+	try: col = getInfo.letter(sheetsAPI("get",{"range":"Fall Attendance!C1:1"})["values"][0].index(command['user_name'])+3)
+	except: return say("Something went wrong finding your name in the spreadsheet.")
 
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":"Fall Attendance!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): sheetsAPI("update",{"range":f"Fall Attendance!A{row}:A{row}","valueInputOption":"RAW","body":{"values":[[day]]}}) # Write the date in the row if it wasn't found
