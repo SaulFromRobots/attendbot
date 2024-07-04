@@ -22,13 +22,13 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 	except AttributeError: return say("You formatted the message incorrectly.")
 	except ValueError: return say("That isn't a real time. Please send real time.")
 
-	try: col = getInfo.letter(sheetsAPI("get",{"range":f"keys['TABLE']!C1:1"})["values"][0].index(command['user_name'])+3)
+	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['TABLE']}!C1:1"})["values"][0].index(command['user_name'])+3)
 	except: return say("Something went wrong finding your name in the spreadsheet.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"keys['TABLE']!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): return say(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
-	sheetsAPI("update",{"range":f"keys['TABLE']!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
+	sheetsAPI("update",{"range":f"{keys['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	say(f"You attended on {day} for {hours} hours.") # react to user by saying the info they just gave us
 
 @app.command("/meeting")
@@ -40,10 +40,10 @@ def meeting(ack, command, say):
 	except AttributeError: return say("You formatted the message incorrectly.")
 	except ValueError: return say("That isn't a real time. Please send real time.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"keys['TABLE']!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (not needWriteDate): say(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
 
-	sheetsAPI("update",{"range":f"keys['TABLE']!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
+	sheetsAPI("update",{"range":f"{keys['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
 	say(f"{day} added to the spreadsheet.")
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
