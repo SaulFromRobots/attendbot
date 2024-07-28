@@ -1,0 +1,51 @@
+\documentclass{article}
+\usepackage[english]{babel}
+\usepackage{amsmath}
+
+%%%%%%%%%% Start TeXmacs macros
+\newcommand{\tmtextmd}[1]{\text{{\mdseries{#1}}}}
+%%%%%%%%%% End TeXmacs macros
+
+\begin{document}
+
+\title{Attendbot 9000 Usage and Administration}
+
+\author{Saul Statman}
+
+\maketitle
+
+\section{Usage}
+
+\subsection{Date and Time Format}
+
+\
+
+Input is given to the program via sending direct messages to a Slack bot
+account.
+
+\subsection{Input}
+
+\
+
+The format used is  [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am] . In the
+following section, a ``word'' is a part of the format separated by strings.
+Any content enclosed in brackets is optional - it can be omitted and the
+program will fall back to a default value.
+
+The first word is  [MM/DD/YYYY], which is a date formatted as MONTH-DAY-YEAR
+with forward slash separators. When it is omitted, it falls back to the
+current date.
+
+The second and third words are both  HH[:MM][am/pm] . The only mandatory
+portion is the hour portion, which is a number from ``1'' to ``12''. The next
+section is the colon and a number from ``00'' to ``59'' representing minutes,
+defaulting to ``00'' when omitted. The final section is a literal ``am'' or
+``pm'', representing the ante meridiem or post meridiem clarification needed
+for 12-hour time. The final section defaults to ``am'' in the first word and
+``pm'' in the second.
+
+\section{Administration\tmtextmd{}}
+
+\
+
+\end{document}
