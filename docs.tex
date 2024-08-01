@@ -1,7 +1,5 @@
 \documentclass{article}
 \usepackage[english]{babel}
-\usepackage{amsmath}
-\newcommand{\tmtextmd}[1]{\text{{\mdseries{#1}}}}
 
 \begin{document}
 
@@ -17,7 +15,7 @@
 
 \
 
-Input is given to the program via sending direct messages to a Slack bot account. Further details in the ``Administration" section.
+Input is given to the program via sending direct messages to a Slack bot account. These messages must be in the form of a ``slash command", which is a special system that Slack uses to handle messages beginning with a slash character (``/").
 
 \subsection{Date and Time Format}
 
@@ -27,9 +25,41 @@ The format used is \texttt{[MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am]}. In the f
 
 The first word is \texttt{[MM/DD/YYYY]}, which is a date formatted as MONTH-DAY-YEAR with forward slash separators. When it is omitted, it falls back to the current date.
 
-The second and third words are bot \texttt{HH[:MM][am/pm]}. The only mandatory portion is the hour portion, which is a number from ``1'' to ``12''. The next section is the colon and a number from ``00'' to ``59'' representing minutes, defaulting to ``00'' when omitted. The final section is a literal ``am'' or ``pm'', representing the ante meridiem or post meridiem clarification needed for 12-hour time. The final section defaults to ``am'' in the first word and ``pm'' in the second.
+The second and third words are \texttt{HH[:MM][am/pm]}. The only mandatory portion is the hour portion, which is a number from ``1'' to ``12''. The next section is the colon and a number from ``00'' to ``59'' representing minutes, defaulting to ``00'' when omitted. The final section is a literal ``am'' or ``pm'', representing the ante meridiem or post meridiem clarification needed for 12-hour time. The final section defaults to ``am'' in the first word and ``pm'' in the second.
+
+The second word represents a ``begin time" and the third word represents an ``end time".
+
+\subsection{The \texttt{/attend} Command}
+
+\
+
+\texttt{/attend} is the primary mode of interaction for users. The command takes arguments using the detailed date and time format. The program will read these arguments and edit the table provided. To do so, it takes in your Slack username, the date in your message, and the amount of hours between the begin and end times in your message (subtracting one hour if you were present for the lunch hour, using decimals for partial hours). The program will then add the amount of hours at the cell indexed by your username and the date.
+
+\section{Deployment}
+
+\subsection{Creating the Bot}
+
+\
+
+\subsection{The \texttt{keys} and \texttt{credentials.json} Files}
+
+\
+
+\subsection{The Spreadsheet}
+
+\
 
 \section{Administration}
+
+\subsection{The \texttt{/meeting} Command}
+
+\
+
+\subsection{The \texttt{/set sheet} and \texttt{/set table} Commands}
+
+\
+
+\subsection{The \texttt{/set op} and \texttt{/set deop} Commands}
 
 \
 
