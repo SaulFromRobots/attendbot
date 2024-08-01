@@ -21,8 +21,8 @@ There must be a keys file with the following keys
 APP_TOKEN=xapp-...
 BOT_TOKEN=xoxb-...
 SIGNING_SECRET=...
-TABLE=   .   .   .
 SHEET=   .   .   .
+TABLE=   .   .   .
 ADMINS=ID ID ID ID
 ```
 
@@ -35,4 +35,4 @@ Both of them take arguments in the format `[MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][p
 
 `/attend` and `/meeting` are almost identical, in that they both find the number of hours between the start and end times and put that time in the appropriate row. They differ in that `/attend` uses the column marked with your slack ID while `/meeting` always uses the "Total Meeting Hours" column. Also, `/meeting` requires that the user be in the programs "admins" list, as it will create rows in the spreadsheet if they are missing while `/attend` will simply inform you that the row is missing.
 
-`/set` is the command that edits the settings based off of a subcommand. `/set table ID` sets the table id of the table which will be written to, and `/set sheet NAME` sets the sheet. `/set op SLACKID` and `/set deop SLACKID` modify the admin list by adding and removing people respectively.
+`/set` is the command that edits the settings based off of a subcommand. `/set sheet ID` sets the id of the sheet which will be written to, and `/set table NAME` sets the table. `/set op SLACKID` and `/set deop SLACKID` modify the admin list by adding and removing people respectively.
