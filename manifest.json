@@ -1,0 +1,56 @@
+{
+	"display_information": {
+		"name": "Attendbot 9000",
+		"description": "Track the attendance of robotics members.",
+		"background_color": "#737373",
+		"long_description": "Use a slash command to track the clock in and clock out time of robotics members. Developed by Saul.\r\n\r\nThe bot uses the commands /attend and /meeting. Both of them take arguments in the format [MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][pm/am]. Anything in brackets is optional. The first word is a date in month-day-year format with slash separators, and it defaults to the current day when omitted. The second and third words are the beginning and end times. Only the hour portion is required, if the colon-minutes portion is omitted it defaults to \":00\" and if \"am\" or \"pm\" are omitted then they default to \"am\" on the first time and \"pm\" on the second. Do not put any separators between the times.\r\n\r\n/attend and /meeting are almost identical, in that they both find the number of hours between the start and end times and put that time in the appropriate row. They differ in that /attend uses the column marked with your slack ID while /meeting always uses the \"Total Meeting Hours\" column. Also, /meeting requires that the user be in the programs \"admin\" list, as it will create rows in the spreadsheet if they are missing while /attend will simply inform you that the row is missing."
+	},
+	"features": {
+		"app_home": {
+			"home_tab_enabled": false,
+			"messages_tab_enabled": true,
+			"messages_tab_read_only_enabled": false
+		},
+		"bot_user": {
+			"display_name": "attendbot",
+			"always_online": true
+		},
+		"slash_commands": [
+			{
+				"command": "/attend",
+				"description": "When did you show up and when did you leave?",
+				"usage_hint": "[MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][am/pm]",
+				"should_escape": false
+			},
+			{
+				"command": "/meeting",
+				"description": "When does the meeting begin and when does it end?",
+				"usage_hint": "[MM/DD/YYYY] HH[:MM][am/pm] HH[:MM][am/pm]",
+				"should_escape": false
+			},
+			{
+				"command": "/set",
+				"description": "Set the app's various settings (admins only)",
+				"usage_hint": "table | sheet | op | deop",
+				"should_escape": false
+			}
+		]
+	},
+	"oauth_config": {
+		"scopes": {
+			"bot": [
+				"channels:read",
+				"chat:write",
+				"commands"
+			]
+		}
+	},
+	"settings": {
+		"interactivity": {
+			"is_enabled": true
+		},
+		"org_deploy_enabled": false,
+		"socket_mode_enabled": true,
+		"token_rotation_enabled": false
+	}
+}

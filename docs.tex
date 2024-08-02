@@ -1,5 +1,6 @@
 \documentclass{article}
 \usepackage[english]{babel}
+\usepackage{hyperref}
 
 \begin{document}
 
@@ -41,11 +42,22 @@ The second word represents a ``begin time" and the third word represents an ``en
 
 \
 
-\subsection{The \texttt{keys} and \texttt{credentials.json} Files}
+Firstly, you must go to \href{https://api.slack.com/apps}{Slack's apps panel} and log in. Create a new app and apply the following settings:
+\begin{itemize}
+	\item Basic Information > Add features and functionality > Enable only Slash Commands, Bots, Permissions
+	\item Basic Information > App-Level Tokens > Generate Token and Scopes > Create a token with \texttt{connections:write}
+	\item Socket Mode > Enable Socket Mode
+	\item App Home > Your App’s Presence in Slack > Always Show My Bot as Online
+	\item Slash Commands > Create New Command > Create the commands \texttt{/attend}, \texttt{/meeting}, and \texttt{/set}
+\end{itemize}
+
+Alternatively, go to App Manifest and paste in the JSON text stored in this repository's \texttt{manifest.json} file.
+
+\subsection{The Spreadsheet}
 
 \
 
-\subsection{The Spreadsheet}
+\subsection{The \texttt{keys} and \texttt{credentials.json} Files}
 
 \
 
