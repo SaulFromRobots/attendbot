@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage[english]{babel}
 \usepackage{hyperref}
+\usepackage{rotating}
 
 \begin{document}
 
@@ -16,7 +17,7 @@
 
 \
 
-Input is given to the program via sending direct messages to a Slack bot account. These messages must be in the form of a ``slash command", which is a special system that Slack uses to handle messages beginning with a slash character (``/").
+Input is given to the program via sending direct messages to a Slack bot account. These messages must be in the form of a ``slash command", which is a special system that Slack uses to handle messages beginning with a slash character (``/"). The bot also makes use of Slack usernames, which are the identifier used for ``@" tagging (of course, excepting the ``@").
 
 \subsection{Date and Time Format}
 
@@ -44,11 +45,11 @@ The second word represents a ``begin time" and the third word represents an ``en
 
 Firstly, you must go to \href{https://api.slack.com/apps}{Slack's apps panel} and log in. Create a new app and apply the following settings:
 \begin{itemize}
-	\item Basic Information > Add features and functionality > Enable only Slash Commands, Bots, Permissions
-	\item Basic Information > App-Level Tokens > Generate Token and Scopes > Create a token with \texttt{connections:write}
-	\item Socket Mode > Enable Socket Mode
-	\item App Home > Your App’s Presence in Slack > Always Show My Bot as Online
-	\item Slash Commands > Create New Command > Create the commands \texttt{/attend}, \texttt{/meeting}, and \texttt{/set}
+	\item Basic Information $\to$ Add features and functionality $\to$ Enable only Slash Commands, Bots, Permissions
+	\item Basic Information $\to$ App-Level Tokens $\to$ Generate Token and Scopes $\to$ Create a token with \texttt{connections:write}
+	\item Socket Mode $\to$ Enable Socket Mode
+	\item App Home $\to$ Your App’s Presence in Slack $\to$ Always Show My Bot as Online
+	\item Slash Commands $\to$ Create New Command $\to$ Create the commands \texttt{/attend}, \texttt{/meeting}, and \texttt{/set}
 \end{itemize}
 
 Alternatively, go to App Manifest and paste in the JSON text stored in this repository's \texttt{manifest.json} file.
@@ -57,9 +58,47 @@ Alternatively, go to App Manifest and paste in the JSON text stored in this repo
 
 \
 
-\subsection{The \texttt{keys} and \texttt{credentials.json} Files}
+The bot is designed to interface with spreadsheets in the following format. Note the names being on column C onward, and the dates being row 4 onward.
+
+\begin{center} \begin{tabular}{|c||c|c|c|c} \hline
+	& \begin{turn}{90}Total Meeting Hours\end{turn} & \begin{turn}{90}Slack username\end{turn} & \begin{turn}{90}Slack username\end{turn} & . . . \\ \hline
+	Percent & & & & . . .\\ \hline
+	Last 10\% & & & & . . .\\ \hline \hline
+	& & & & . . .\\ \hline
+	. . .&. . .&. . .&. . .&
+\end{tabular} \end{center}
+
+This can be modified by changing every instance of ``4" and ``C" in \texttt{main.py}'s usage of table ranges.
+
+\subsection{The \texttt{keys} File}
 
 \
+
+The \texttt{keys} file is a set of keys and values in the below format, requiring the below keys. Values are replaced with placeholders.
+\begin{verbatim}
+APP_TOKEN=xapp-...
+BOT_TOKEN=xoxb-...
+SIGNING_SECRET=...
+SHEET=   .   .   .
+TABLE=   .   .   .
+ADMINS=ID ID ID ID
+\end{verbatim}
+
+The values can be found in the following ways:
+\begin{itemize}
+	\item \texttt{APP\_TOKEN}: Slack apps dashboard $\to$ Basic Information $\to$ App-Level Tokens $\to$ Token
+	\item \texttt{BOT\_TOKEN}: Slack apps dashboard $\to$ OAuth \& Permissions $\to$ Bot User OAuth Token
+	\item \texttt{SIGNING\_SECRET}: Slack apps dashboard $\to$ Basic Information $\to$ App Credentials $\to$ Signing Secret
+	\item \texttt{SHEET}: Google Sheets spreadsheet $\to$ Section in URL between \texttt{spreadsheets/d/} and \texttt{/edit}
+	\item \texttt{TABLE}: Google Sheets spreadsheet $\to$ Text on the highlighted tab along the bottom of the website
+	\item \texttt{ADMINS}: Space-separated list of the Slack usernames of people who have permission to administrate
+\end{itemize}
+
+\subsection{The \texttt{credentials.json} File and Google Authentication}
+
+\
+
+Go through the ``Set up your environment" section of \href{https://developers.google.com/sheets/api/quickstart/python#set-up-environment}{Google's Python quickstart document}. Put the resultant \texttt{credentials.json} file in the same directory as the Python files. When you first run the program (or whenever you lack a \texttt{manifest.json}), you will be prompted by Google's authentication flow. Open the stated URL and log in with a Google account that has access to the spreadsheet.
 
 \section{Administration}
 
