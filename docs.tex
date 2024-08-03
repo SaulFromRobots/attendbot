@@ -102,16 +102,26 @@ Go through the ``Set up your environment" section of \href{https://developers.go
 
 \section{Administration}
 
+/
+
+Only Slack accounts with their usernames listed in \texttt{ADMINS} may use administration commands.
+
 \subsection{The \texttt{/meeting} Command}
 
 \
+
+For user input, the \texttt{/meeting} command is identical to the \texttt{/attend} command. If the date isn't in the first column, add it. Otherwise, select the row that it is in. Add the hours to the second column (Total Meeting Hours).
 
 \subsection{The \texttt{/set sheet} and \texttt{/set table} Commands}
 
 \
 
+Take one argument after the sub-command (``sheet" or ``table"). Change the \texttt{SHEET} and \texttt{TABLE} values of the settings to that argument.
+
 \subsection{The \texttt{/set op} and \texttt{/set deop} Commands}
 
 \
+
+Take one slack username as an argument after the sub-command (``op" or ``deop"). Add someone to or remove someone from the list in the \texttt{ADMINS} setting value.
 
 \end{document}
