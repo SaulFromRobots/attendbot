@@ -35,7 +35,7 @@ def attend(ack, command, say): # bolt commands need to be passed as arguments
 @app.command("/meeting")
 def meeting(ack, command, say):
 	ack()
-	if (command['user_name'] not in k['ADMINS'].split()): return say(f"You are not one of the admins ({k['ADMINS']}).")
+	if (command['user_name'] not in k['ADMINS']): return say(f"You are not one of the admins ({k['ADMINS']}).")
 	
 	try: day, hrs = getInfo.dayHours(command["text"])
 	except AttributeError: return say("You formatted the message incorrectly.")
