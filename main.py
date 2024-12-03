@@ -1,7 +1,3 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -i python3 -p python312Packages.slack-bolt python312Packages.google-api-python-client python312Packages.google-auth-httplib2 python312Packages.google-auth-oauthlib
-from re import match
-from datetime import date
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from googleapiclient.discovery import build
