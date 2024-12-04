@@ -3,6 +3,14 @@ from datetime import datetime, date, time
 
 to24hr = lambda h,n: (int(h)%12) + (12*n) # convert 12 hour times from messages to 24 hour times for datetime.time()
 
+def dayHoursM(modal_response): # Extract the day and hours from the modal response
+	response = dict(map(dict.popitem,modal_response.values()))
+	day = "{1}/{2}/{0}".format(*(response["datepicker-action"]["selected_date"].split("-"))) # get the day in the format used by the sheet 
+	start = datetime.strptime(response["timepicker-arrive-action"]["selected_time"], r"%H:%M")
+	end = datetime.strptime(response["timepicker-leave-action"]["selected_time"], r"%H:%M")
+	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) < end) # get the number of hours the user attended the meeting, subtracting lunch if required
+	return day, hours
+
 def dayHours(message): # Extract the day and hours from the message
 	components = match("(?P<date>[0-9]+/[0-9]+/[0-9]+ )?(?P<startHour>[0-9]+)(:(?P<startMinute>[0-9]+))?(?P<startAfternoon>am|pm)? (?P<endHour>[0-9]+)(:(?P<endMinute>[0-9]+))?(?P<endAfternoon>am|pm)?", message) # regex match for relevent info
 

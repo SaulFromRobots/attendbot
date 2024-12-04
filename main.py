@@ -1,4 +1,4 @@
-from datetime import datetime, date, time
+from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from googleapiclient.discovery import build
@@ -61,22 +61,15 @@ def attend_modal(ack, shortcut, client):
 		}
 	)
 
-@app.view("attendance-taker")
-def handle_view_submission_events(ack, body, view, client):
-	ack()
+@app.view("attendance-taker") # Code for the attendance modal
+def handle_view_submission_events(ack, body, view, client, say): # bolt commands need to be passed as arguments
+	ack() # the api is a needy freak and demands constant acknowledgment
+
 	user = body["user"]["name"]
-	response = dict(map(dict.popitem,view["state"]["values"].values()))
-	day = "{1}/{2}/{0}".format(*(response["datepicker-action"]["selected_date"].split("-")))
-	start = datetime.strptime(response["timepicker-arrive-action"]["selected_time"], r"%H:%M")
-	end = datetime.strptime(response["timepicker-leave-action"]["selected_time"], r"%H:%M")
-	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) < end)
+	day, hours = getInfo.dayHoursM(view["state"]["values"])
+	print(user, day, hours)
 	
-	print(user, day, hours, response)
-	message = lambda msg: client.views_update(
-		view_id=body["view"]["id"],
-		hash=body["view"]["hash"],
-		view={"type": "modal","callback_id": "complain","title": {"type": "plain_text", "text": "Attendbot"},"blocks": [{"type": "section","text": {"type": "plain_text", "text": msg}}]}
-	) # TODO: this is broken
+	message = lambda msg: say(text=msg, channel=body["user"]["id"])
 
 	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{k['TABLE']}!C1:1"})["values"][0].index(user)+3)
 	except: return message("Something went wrong finding your name in the spreadsheet.")
@@ -86,23 +79,6 @@ def handle_view_submission_events(ack, body, view, client):
 
 	sheetsAPI("update",{"range":f"{k['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	return message(f"You attended on {day} for {hours} hours.")
-
-@app.command("/attend") # `/attend` is the main command. This is the one thing the bot does, so it's fine.
-def attend(ack, command, say): # bolt commands need to be passed as arguments
-	ack() # the api is a needy freak and demands constant acknowledgment
-
-	try: day, hours = getInfo.dayHours(command["text"]) # use my function to extract the day and hours attended
-	except AttributeError: return say("You formatted the message incorrectly.")
-	except ValueError: return say("That isn't a real time. Please send real time.")
-
-	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{k['TABLE']}!C1:1"})["values"][0].index(command['user_name'])+3)
-	except: return say("Something went wrong finding your name in the spreadsheet.")
-
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{k['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
-	if (needWriteDate): return say(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
-
-	sheetsAPI("update",{"range":f"{k['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
-	say(f"You attended on {day} for {hours} hours.") # react to user by saying the info they just gave us
 
 @app.command("/meeting")
 def meeting(ack, command, say):
