@@ -9,21 +9,17 @@ import getInfo
 sheetsAPI=lambda method,args:getattr(build("sheets","v4",credentials=googleAuth).spreadsheets().values(),method)(**({"spreadsheetId":k["SHEET"]}|args)).execute() # create a lambda to simplify the madness
 k = keys.copy() # use a copy of keys instead of the raw object
 
-
-
 # declare a slack app
 app = App(token=k["BOT_TOKEN"], signing_secret=k["SIGNING_SECRET"])
 
-@app.shortcut("attend")
-def attend_modal(ack, shortcut, client):
+def modal(ack, shortcut, client, kind):
 	ack()
-
 	client.views_open(
 		trigger_id=shortcut["trigger_id"],
 		view = 	{
 			"type": "modal",
-			"callback_id": "attendance-taker",
-			"title": { "type": "plain_text", "text": "Attend", "emoji": True },
+			"callback_id": kind+"-callback",
+			"title": { "type": "plain_text", "text": kind, "emoji": True },
 			"submit": { "type": "plain_text", "text": "Submit", "emoji": True },
 			"close": { "type": "plain_text", "text": "Cancel", "emoji": True },
 			"blocks": [
@@ -60,13 +56,17 @@ def attend_modal(ack, shortcut, client):
 			]
 		}
 	)
+@app.shortcut("attend")
+def attend_modal(ack, shortcut, client): modal(ack, shortcut, client, "attend")
+@app.shortcut("declare-meeting")
+def declare_meeting_modal(ack, shortcut, client): modal(ack, shortcut, client, "declare_meeting")
 
-@app.view("attendance-taker") # Code for the attendance modal
-def handle_view_submission_events(ack, body, view, client, say): # bolt commands need to be passed as arguments
+@app.view("attend-callback") # Code for the attendance modal
+def attend(ack, body, view, client, say): # bolt commands need to be passed as arguments
 	ack() # the api is a needy freak and demands constant acknowledgment
 
 	user = body["user"]["name"]
-	day, hours = getInfo.dayHoursM(view["state"]["values"])
+	day, hours = getInfo.dayHours(view["state"]["values"])
 	print(user, day, hours)
 	
 	message = lambda msg: say(text=msg, channel=body["user"]["id"])
@@ -80,20 +80,22 @@ def handle_view_submission_events(ack, body, view, client, say): # bolt commands
 	sheetsAPI("update",{"range":f"{k['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	return message(f"You attended on {day} for {hours} hours.")
 
-@app.command("/meeting")
-def meeting(ack, command, say):
+@app.view("declare_meeting-callback")
+def meeting(ack, body, view, client, say):
 	ack()
-	if (command['user_name'] not in k['ADMINS']): return say(f"You are not one of the admins ({k['ADMINS']}).")
+	message = lambda msg: say(text=msg, channel=body["user"]["id"])
+	user = body["user"]["name"]
+	if (user not in k['ADMINS']): return message(f"You are not one of the admins ({k['ADMINS']}).")
 	
-	try: day, hrs = getInfo.dayHours(command["text"])
-	except AttributeError: return say("You formatted the message incorrectly.")
-	except ValueError: return say("That isn't a real time. Please send real time.")
+	try: day, hrs = getInfo.dayHours(view["state"]["values"])
+	except AttributeError: return message("You formatted the message incorrectly.")
+	except ValueError: return message("That isn't a real time. Please send real time.")
 
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{k['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
-	if (not needWriteDate): say(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
+	if (not needWriteDate): message(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
 
 	sheetsAPI("update",{"range":f"{k['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
-	say(f"{day} added to the spreadsheet.")
+	message(f"{day} added to the spreadsheet.")
 
 @app.command("/set")
 def sheetAdmin(ack, command, say):

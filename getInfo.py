@@ -1,24 +1,10 @@
-from re import match
 from datetime import datetime, date, time
 
-to24hr = lambda h,n: (int(h)%12) + (12*n) # convert 12 hour times from messages to 24 hour times for datetime.time()
-
-def dayHoursM(modal_response): # Extract the day and hours from the modal response
+def dayHours(modal_response): # Extract the day and hours from the modal response
 	response = dict(map(dict.popitem,modal_response.values()))
 	day = "{1}/{2}/{0}".format(*(response["datepicker-action"]["selected_date"].split("-"))) # get the day in the format used by the sheet 
 	start = datetime.strptime(response["timepicker-arrive-action"]["selected_time"], r"%H:%M")
 	end = datetime.strptime(response["timepicker-leave-action"]["selected_time"], r"%H:%M")
-	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) < end) # get the number of hours the user attended the meeting, subtracting lunch if required
-	return day, hours
-
-def dayHours(message): # Extract the day and hours from the message
-	components = match("(?P<date>[0-9]+/[0-9]+/[0-9]+ )?(?P<startHour>[0-9]+)(:(?P<startMinute>[0-9]+))?(?P<startAfternoon>am|pm)? (?P<endHour>[0-9]+)(:(?P<endMinute>[0-9]+))?(?P<endAfternoon>am|pm)?", message) # regex match for relevent info
-
-	# Create datetimes for the beginning and ending time (funilly enough, only the time needs to be accurate)
-	start = datetime.combine(date.today(), time(hour=to24hr(components.group("startHour"), (components.group("startAfternoon") or "am") == "pm"), minute=int(components.group("startMinute") or 0)))
-	end = datetime.combine(date.today(), time(hour=to24hr(components.group("endHour"), (components.group("endAfternoon") or "pm") == "pm"), minute=int(components.group("endMinute") or 0)))
-
-	day = (components.group("date") or date.today().strftime("%-m/%-d/%Y")).strip() # get the day that the user sent the message on in the format used by the sheet
 	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) < end) # get the number of hours the user attended the meeting, subtracting lunch if required
 	return day, hours
 
