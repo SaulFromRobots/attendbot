@@ -1,3 +1,4 @@
+from datetime import datetime
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
 from googleapiclient.discovery import build
@@ -10,6 +11,57 @@ k = keys.copy() # use a copy of keys instead of the raw object
 
 # declare a slack app
 app = App(token=k["BOT_TOKEN"], signing_secret=k["SIGNING_SECRET"])
+
+@app.shortcut("attend")
+def attend_modal(ack, shortcut, client):
+	ack()
+
+	client.views_open(
+		trigger_id=shortcut["trigger_id"],
+		view = 	{
+			"type": "modal",
+			"title": { "type": "plain_text", "text": "Attend", "emoji": True },
+			"submit": { "type": "plain_text", "text": "Submit", "emoji": True },
+			"close": { "type": "plain_text", "text": "Cancel", "emoji": True },
+			"blocks": [
+				{
+					"type": "input",
+					"element": {
+						"type": "datepicker",
+						"initial_date": datetime.today().strftime("%Y-%m-%d"),
+						"placeholder": { "type": "plain_text", "text": "Select a date", "emoji": True },
+						"action_id": "datepicker-action"
+					},
+					"label": { "type": "plain_text", "text": "Date of meeting", "emoji": True }
+				},
+				{
+					"type": "input",
+					"element": {
+						"type": "timepicker",
+						"initial_time": "12:00",
+						"placeholder": { "type": "plain_text", "text": "Select time", "emoji": True },
+						"action_id": "timepicker-action"
+					},
+					"label": { "type": "plain_text", "text": "Arrive time", "emoji": True }
+				},
+				{
+					"type": "input",
+					"element": {
+						"type": "timepicker",
+						"initial_time": datetime.today().strftime("%H:%M"),
+						"placeholder": { "type": "plain_text", "text": "Select time", "emoji": True },
+						"action_id": "timepicker-action"
+					},
+					"label": { "type": "plain_text", "text": "Leave time", "emoji": True }
+				}
+			]
+		}
+	)
+
+@app.view("")
+def handle_view_submission_events(ack, body, view):
+    ack()
+    print(body["user"]["name"], view["state"]["values"])
 
 @app.command("/attend") # `/attend` is the main command. This is the one thing the bot does, so it's fine.
 def attend(ack, command, say): # bolt commands need to be passed as arguments
