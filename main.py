@@ -15,7 +15,7 @@ def modal(ack, shortcut, client, kind):
 	ack()
 	client.views_open(
 		trigger_id=shortcut["trigger_id"],
-		view = 	{
+		view = {
 			"type": "modal",
 			"callback_id": kind+"-callback",
 			"title": { "type": "plain_text", "text": kind, "emoji": True },
@@ -115,5 +115,32 @@ def sheetAdmin(ack, command, say):
 		say(f"{subarg} is no longer an admin.")
 
 	with open("keys", "a") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v)) for k,v in keys.items()])
+
+@app.event("app_home_opened")
+def update_home_tab(client, event):
+	print()
+	client.views_publish(user_id=event["user"], view = {
+		"type": "home",
+		"blocks": [
+			{
+				"type": "input",
+				"label": { "type": "plain_text","text": item,"emoji": True },
+				"element": {
+					"type": "plain_text_input",
+					"action_id": item,
+					"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
+				}
+			} for item in ["SHEET", "TABLE", "ADMINS"]
+		] + [ {
+				"type": "actions",
+				"elements": [ {
+					"type": "button",
+					"text": { "type": "plain_text","text": "Save","emoji": True },
+					"value": "foo",
+					"action_id": "save-settings"
+				} ]
+			}
+		]
+	})
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
