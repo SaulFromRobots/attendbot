@@ -5,12 +5,11 @@ from googleapiclient.discovery import build
 from settings import keys, googleAuth
 import getInfo
 
-# a few helper objects
-sheetsAPI=lambda method,args:getattr(build("sheets","v4",credentials=googleAuth).spreadsheets().values(),method)(**({"spreadsheetId":k["SHEET"]}|args)).execute() # create a lambda to simplify the madness
-k = keys.copy() # use a copy of keys instead of the raw object
+# create a lambda to simplify the madness
+sheetsAPI=lambda method,args:getattr(build("sheets","v4",credentials=googleAuth).spreadsheets().values(),method)(**({"spreadsheetId":keys["SHEET"]}|args)).execute()
 
 # declare a slack app
-app = App(token=k["BOT_TOKEN"], signing_secret=k["SIGNING_SECRET"])
+app = App(token=keys["BOT_TOKEN"], signing_secret=keys["SIGNING_SECRET"])
 
 def modal(ack, shortcut, client, kind):
 	ack()
@@ -71,10 +70,10 @@ def attend(ack, body, view, client, say): # bolt commands need to be passed as a
 	
 	message = lambda msg: say(text=msg, channel=body["user"]["id"])
 
-	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{k['TABLE']}!C1:1"})["values"][0].index(user)+3)
+	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['TABLE']}!C1:1"})["values"][0].index(user)+3)
 	except: return message("Something went wrong finding your name in the spreadsheet.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{k['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): return message(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
 	sheetsAPI("update",{"range":f"{k['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
@@ -85,36 +84,36 @@ def meeting(ack, body, view, client, say):
 	ack()
 	message = lambda msg: say(text=msg, channel=body["user"]["id"])
 	user = body["user"]["name"]
-	if (user not in k['ADMINS']): return message(f"You are not one of the admins ({k['ADMINS']}).")
+	if (user not in keys['ADMINS']): return message(f"You are not one of the admins ({keys['ADMINS']}).")
 	
 	try: day, hrs = getInfo.dayHours(view["state"]["values"])
 	except AttributeError: return message("You formatted the message incorrectly.")
 	except ValueError: return message("That isn't a real time. Please send real time.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{k['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (not needWriteDate): message(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
 
-	sheetsAPI("update",{"range":f"{k['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
+	sheetsAPI("update",{"range":f"{keys['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
 	message(f"{day} added to the spreadsheet.")
 
 @app.command("/set")
 def sheetAdmin(ack, command, say):
 	ack()
-	if (command['user_name'] not in k['ADMINS'].split()): return say(f"You are not one of the admins ({k['ADMINS']}).")
+	if (command['user_name'] not in keys['ADMINS'].split()): return say(f"You are not one of the admins ({keys['ADMINS']}).")
 
 	try: subcommand, subarg = command.split(" ")
 	except ValueError: subcommand, subarg = "table", command
 
 	if subcommand in [ "table", "sheet" ]:
-		k[subcommand.upper()] = subarg
+		keys[subcommand.upper()] = subarg
 		say(f"set {subcommand} to {subarg}")
 	elif subcommand == "op":
-		k['ADMINS'] = k['ADMINS'] | set([subarg])
+		keys['ADMINS'] = keys['ADMINS'] | set([subarg])
 		say(f"{subarg} is now an admin.")
 	elif subcommand == "deop":
-		k['ADMINS'] = k['ADMINS'] - set([subarg])
+		keys['ADMINS'] = keys['ADMINS'] - set([subarg])
 		say(f"{subarg} is no longer an admin.")
 
 	with open("keys", "a") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v)) for k,v in keys.items()])
 
-if __name__ == "__main__": SocketModeHandler(app, k["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
+if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
