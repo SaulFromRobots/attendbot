@@ -96,51 +96,34 @@ def meeting(ack, body, view, client, say):
 	sheetsAPI("update",{"range":f"{keys['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
 	message(f"{day} added to the spreadsheet.")
 
-@app.command("/set")
-def sheetAdmin(ack, command, say):
-	ack()
-	if (command['user_name'] not in keys['ADMINS'].split()): return say(f"You are not one of the admins ({keys['ADMINS']}).")
-
-	try: subcommand, subarg = command.split(" ")
-	except ValueError: subcommand, subarg = "table", command
-
-	if subcommand in [ "table", "sheet" ]:
-		keys[subcommand.upper()] = subarg
-		say(f"set {subcommand} to {subarg}")
-	elif subcommand == "op":
-		keys['ADMINS'] = keys['ADMINS'] | set([subarg])
-		say(f"{subarg} is now an admin.")
-	elif subcommand == "deop":
-		keys['ADMINS'] = keys['ADMINS'] - set([subarg])
-		say(f"{subarg} is no longer an admin.")
-
-	with open("keys", "a") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v)) for k,v in keys.items()])
-
 @app.event("app_home_opened")
 def update_home_tab(client, event):
-	print()
 	client.views_publish(user_id=event["user"], view = {
 		"type": "home",
 		"blocks": [
 			{
 				"type": "input",
 				"label": { "type": "plain_text","text": item,"emoji": True },
+				"dispatch_action": True,
+				"block_id": item,
 				"element": {
 					"type": "plain_text_input",
-					"action_id": item,
+					"action_id": "save-setting",
 					"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
 				}
-			} for item in ["SHEET", "TABLE", "ADMINS"]
-		] + [ {
-				"type": "actions",
-				"elements": [ {
-					"type": "button",
-					"text": { "type": "plain_text","text": "Save","emoji": True },
-					"value": "foo",
-					"action_id": "save-settings"
-				} ]
-			}
+			} for item in ["SHEET", "TABLE", "ADMINS"] 
 		]
 	})
+	print(client.users_info(user=event["user"]))
+
+@app.action("save-setting")
+def processSetting(ack, body, say):
+	ack()
+	user = body["user"]["name"]
+	if user not in keys['ADMINS']: return say(text="You are not an admin!", channel=body["user"]["id"])
+	setting = body["actions"][0]["block_id"]
+	value = body["actions"][0]["value"]
+	keys[setting] = value if type(keys[setting]) is str else set(value.split())
+	with open("keys", "w") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v))+"\n" for k,v in keys.items()])
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
