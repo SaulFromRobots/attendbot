@@ -18,39 +18,39 @@ def modal(ack, shortcut, client, kind):
 		view = {
 			"type": "modal",
 			"callback_id": kind+"-callback",
-			"title": { "type": "plain_text", "text": kind, "emoji": True },
-			"submit": { "type": "plain_text", "text": "Submit", "emoji": True },
-			"close": { "type": "plain_text", "text": "Cancel", "emoji": True },
+			"title": { "type": "plain_text", "text": kind },
+			"submit": { "type": "plain_text", "text": "Submit" },
+			"close": { "type": "plain_text", "text": "Cancel" },
 			"blocks": [
 				{
 					"type": "input",
 					"element": {
 						"type": "datepicker",
 						"initial_date": datetime.today().strftime("%Y-%m-%d"),
-						"placeholder": { "type": "plain_text", "text": "Select a date", "emoji": True },
+						"placeholder": { "type": "plain_text", "text": "Select a date" },
 						"action_id": "datepicker-action"
 					},
-					"label": { "type": "plain_text", "text": "Date of meeting", "emoji": True }
+					"label": { "type": "plain_text", "text": "Date of meeting" }
 				},
 				{
 					"type": "input",
 					"element": {
 						"type": "timepicker",
 						"initial_time": "12:00",
-						"placeholder": { "type": "plain_text", "text": "Select time", "emoji": True },
+						"placeholder": { "type": "plain_text", "text": "Select time" },
 						"action_id": "timepicker-arrive-action"
 					},
-					"label": { "type": "plain_text", "text": "Arrive time", "emoji": True }
+					"label": { "type": "plain_text", "text": "Arrive time" }
 				},
 				{
 					"type": "input",
 					"element": {
 						"type": "timepicker",
 						"initial_time": datetime.today().strftime("%H:%M"),
-						"placeholder": { "type": "plain_text", "text": "Select time", "emoji": True },
+						"placeholder": { "type": "plain_text", "text": "Select time" },
 						"action_id": "timepicker-leave-action"
 					},
-					"label": { "type": "plain_text", "text": "Leave time", "emoji": True }
+					"label": { "type": "plain_text", "text": "Leave time" }
 				}
 			]
 		}
@@ -76,7 +76,7 @@ def attend(ack, body, view, client, say): # bolt commands need to be passed as a
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): return message(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
-	sheetsAPI("update",{"range":f"{k['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
+	sheetsAPI("update",{"range":f"{keys['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	return message(f"You attended on {day} for {hours} hours.")
 
 @app.view("declare_meeting-callback")
@@ -98,23 +98,43 @@ def meeting(ack, body, view, client, say):
 
 @app.event("app_home_opened")
 def update_home_tab(client, event):
+	adminSettings = [{ "type": "header", "text": { "type": "plain_text", "text": "Admin Settings" } }] + [ {
+		"type": "input",
+		"label": { "type": "plain_text","text": item, },
+		"dispatch_action": True,
+		"block_id": item,
+		"element": {
+			"type": "plain_text_input",
+			"action_id": "save-setting",
+			"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
+		}
+	} for item in ["SHEET", "TABLE", "ADMINS"] ]
+
+	user = client.users_info(user=event["user"])["user"]["name"]
+	col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['TABLE']}!C1:1"})["values"][0].index(user)+3)
+	percent = float(sheetsAPI("get",{"range":f"{keys['TABLE']}!{col}2"})["values"][0][0].removesuffix("%"))
+
 	client.views_publish(user_id=event["user"], view = {
 		"type": "home",
 		"blocks": [
 			{
-				"type": "input",
-				"label": { "type": "plain_text","text": item,"emoji": True },
-				"dispatch_action": True,
-				"block_id": item,
-				"element": {
-					"type": "plain_text_input",
-					"action_id": "save-setting",
-					"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
-				}
-			} for item in ["SHEET", "TABLE", "ADMINS"] 
-		]
+				"type": "header",
+				"text": { "type": "plain_text", "text": "Meeting Attendance" }
+			},
+			{
+				"type": "section",
+				"text": { "type": "plain_text", "text": f"Attendance: {percent}%" }
+			},
+			{
+				"type": "section",
+				"fields": [
+					{ "type": "plain_text", "text": "Eligible for build season: "+str(percent >= 60) },
+					{ "type": "plain_text", "text": "Eligible for travel team: "+str(percent >= 75) }
+					# TODO: make build/travel requirements variables
+				]
+			}
+		] + (adminSettings if user in keys["ADMINS"] else [])
 	})
-	print(client.users_info(user=event["user"]))
 
 @app.action("save-setting")
 def processSetting(ack, body, say):
@@ -127,3 +147,5 @@ def processSetting(ack, body, say):
 	with open("keys", "w") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v))+"\n" for k,v in keys.items()])
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
+# TODO: add outreach tracking as a seperate thing in the main thing
+# TODO: update docs
