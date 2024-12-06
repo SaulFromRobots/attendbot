@@ -47,6 +47,7 @@ def meetingDatetime(ack, shortcut, client, kind):
 	)
 
 def home(client, event, user, percent):
+	req = keys["MEETING_REQ"].split(",")
 	blocks = [
 		{
 			"type": "header",
@@ -59,9 +60,8 @@ def home(client, event, user, percent):
 		{
 			"type": "section",
 			"fields": [
-				{ "type": "plain_text", "text": "Eligible for build season: "+str(percent >= 60) },
-				{ "type": "plain_text", "text": "Eligible for travel team: "+str(percent >= 75) }
-				# TODO: make build/travel requirements variables
+				{ "type": "plain_text", "text": "Eligible for build season: "+str(percent >= int(req[0])) },
+				{ "type": "plain_text", "text": "Eligible for travel team: "+str(percent >= int(req[1])) }
 			]
 		}
 	] + (
@@ -75,6 +75,6 @@ def home(client, event, user, percent):
 			"action_id": "save-setting",
 			"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
 		}
-	} for item in ["SHEET", "TABLE", "ADMINS"] ] if user in keys["ADMINS"] else [])
+	} for item in ["SHEET", "TABLE", "ADMINS", "MEETING_REQ"] ] if user in keys["ADMINS"] else [])
 
 	client.views_publish(user_id=event["user"], view = { "type": "home", "blocks": blocks})
