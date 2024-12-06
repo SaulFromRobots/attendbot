@@ -46,22 +46,29 @@ def meetingDatetime(ack, shortcut, client, kind):
 		}
 	)
 
-def home(client, event, user, Mattendance):
+def home(client, event, user, Mattendance, Oattendance):
 	Mreq = keys["MEETING_REQ"].split(",")
+	MattendanceFloat = float(Mattendance.removesuffix("%"))
+	Oreq = keys["OUTREACH_REQ"].split(",")
+	OattendanceFloat = float(Oattendance.removesuffix("%"))
 	blocks = [
 		{
 			"type": "header",
-			"text": { "type": "plain_text", "text": "Meeting Attendance" }
+			"text": { "type": "plain_text", "text": "Attendance" }
 		},
 		{
 			"type": "section",
-			"text": { "type": "plain_text", "text": f"Attendance: {Mattendance}%" }
+			"text": { "type": "plain_text", "text": "Meeting: "+Mattendance }
+		},
+		{
+			"type": "section",
+			"text": { "type": "plain_text", "text": "Outreach: "+Oattendance }
 		},
 		{
 			"type": "section",
 			"fields": [
-				{ "type": "plain_text", "text": "Eligible for build season: "+str(Mattendance >= int(Mreq[0])) },
-				{ "type": "plain_text", "text": "Eligible for travel team: "+str(Mattendance >= int(Mreq[1])) }
+				{ "type": "plain_text", "text": "Eligible for build season: "+str(MattendanceFloat >= int(Mreq[0]) and OattendanceFloat >= int(Oreq[0])) },
+				{ "type": "plain_text", "text": "Eligible for travel team: "+str(MattendanceFloat >= int(Mreq[1]) and OattendanceFloat >= int(Oreq[1])) }
 			]
 		}
 	] + (

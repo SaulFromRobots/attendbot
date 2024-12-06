@@ -19,7 +19,7 @@ def letter(num): # convert number into sheets-style letter index (my beloathed)
 def findDayRow(sheetsApiResponse, day): # Find the dates in the spreadsheet
 	needWriteDate = False
 	try: # Find the dates in the api response
-		rows = sheetsApiResponse["values"][0]
+		rows = map(lambda i: i.split(" ")[0], sheetsApiResponse["values"][0]) # have notes in the date cells if date is the 1st word
 		try: row = rows.index(day)+4 # Find the day and calculate it's row
 		except ValueError:
 			row = len(rows)+4 # If the day isn't in the row, it should be the next one
