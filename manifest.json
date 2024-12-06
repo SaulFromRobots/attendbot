@@ -3,11 +3,11 @@
         "name": "Attendbot 9000",
         "description": "Track the attendance of robotics members.",
         "background_color": "#737373",
-        "long_description": "Use a modal to track the clock in and clock out time of robotics members. Developed by Saul.\r\n\r\nThe attend modal and the meeting modal are almost identical, in that they both find the number of hours between the start and end times and put that time in the appropriate row. They differ in that attend uses the column marked with your slack ID while meeting always uses the \"Total Meeting Hours\" column. Also, meeting requires that the user be in the programs \"admin\" list, as it will create rows in the spreadsheet if they are missing while attend will simply inform you that the row is missing."
+        "long_description": "Use a modal to track the attendance of robotics members. Developed by Saul.\r\n\r\nThe attend modal and the meeting modal are almost identical, in that they both find the number of hours between the start and end times and put that time in the appropriate row. They differ in that attend uses the column marked with your slack ID while meeting always uses the \"Total Meeting Hours\" column. Also, meeting requires that the user be in the programs \"admin\" list, as it will create rows in the spreadsheet if they are missing while attend will simply inform you that the row is missing."
     },
     "features": {
         "app_home": {
-            "home_tab_enabled": false,
+            "home_tab_enabled": true,
             "messages_tab_enabled": true,
             "messages_tab_read_only_enabled": false
         },
@@ -28,14 +28,6 @@
                 "callback_id": "declare-meeting",
                 "description": "Declare a meeting"
             }
-        ],
-        "slash_commands": [
-            {
-                "command": "/set",
-                "description": "Set the app's various settings (admins only)",
-                "usage_hint": "table | sheet | op | deop",
-                "should_escape": false
-            }
         ]
     },
     "oauth_config": {
@@ -43,11 +35,17 @@
             "bot": [
                 "channels:read",
                 "chat:write",
+                "users:read",
                 "commands"
             ]
         }
     },
     "settings": {
+        "event_subscriptions": {
+            "bot_events": [
+                "app_home_opened"
+            ]
+        },
         "interactivity": {
             "is_enabled": true
         },

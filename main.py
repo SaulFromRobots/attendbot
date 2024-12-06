@@ -75,4 +75,3 @@ def processSetting(ack, body, say):
 	say(text=f"Setting {setting} is now {value}.", channel=body["user"]["id"])
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
-# TODO: update docs

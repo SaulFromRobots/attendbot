@@ -1,106 +1,162 @@
-\documentclass{article}
-\usepackage[english]{babel}
-\usepackage{hyperref}
+\documentclass[english]{article}
+\usepackage[latin9]{inputenc}
+\usepackage{babel}
 \usepackage{rotating}
+\usepackage[unicode=true, bookmarks=false, breaklinks=false,pdfborder={0 0 1},backref=section,colorlinks=false] {hyperref}
+\makeatletter
+\providecommand{\tabularnewline}{\\}
+\usepackage[english]{babel}
+\makeatother
 
 \begin{document}
 
 \title{Attendbot 9000 Usage and Administration}
-
 \author{Saul Statman}
-
 \maketitle
 
 \section{Usage}
 
 \subsection{Input}
 
-\
-
-Input is given to the program via running shortcuts provided by a Slack bot account. These shortcuts may be acessed from the ``[/]" menu on the message composition bar. The bot also makes use of Slack usernames, which are the identifier used for ``@" tagging (of course, excepting the ``@").
+Input is given to the program via running shortcuts provided by a
+Slack bot account. These shortcuts may be accessed from the ``{[}/{]}''
+menu on the message composition bar or by using the search bar. The
+bot also makes use of Slack usernames, which are the identifier used
+for ``@'' tagging (excepting the ``@'').
 
 \subsection{The \texttt{Attend} Modal}
 
-\
+\texttt{Attend} is the primary mode of interaction for users. The
+shortcut will show a modal which takes input for the date, start time,
+and end time. The program will read these arguments and edit the table
+provided. To do so, it takes in your Slack username, the date in your
+message, and the amount of hours between the begin and end times in
+your message (subtracting one hour if you were present for the lunch
+hour, using decimals for partial hours). The program will then add
+the amount of hours at the cell indexed by your username and the date.
 
-\texttt{Attend} is the primary mode of interaction for users. The shortcut will show a modal which takes input for the date, start time, and end time. The program will read these arguments and edit the table provided. To do so, it takes in your Slack username, the date in your message, and the amount of hours between the begin and end times in your message (subtracting one hour if you were present for the lunch hour, using decimals for partial hours). The program will then add the amount of hours at the cell indexed by your username and the date.
+\subsection{Screens}
+
+The bot's user page includes the ``Home'', ``Messages'', and ``About''
+screens.
+\begin{itemize}
+\item The home screen contains the attendance data of the user currently
+viewing it. This includes regular meeting and outreach numbers, as
+well as a section which calculates their eligibility for both the
+build team and travel team.
+\item The messages screen is used for responding to user action with status
+notifications.
+\item The about screen has usage documentation for the various modals.
+\end{itemize}
 
 \section{Deployment}
 
 \subsection{Creating the Bot}
 
-\
-
-Firstly, you must go to \href{https://api.slack.com/apps}{Slack's apps panel} and log in. Create a new app and go to App Manifest. Paste in the JSON text stored in this repository's \texttt{manifest.json} file.
+First, you must go to \href{https://api.slack.com/apps}{Slack's apps panel}and
+log in. Create a new app and go to the App Manifest page. Paste in
+the JSON text stored in this repository's \texttt{manifest.json} file.
 
 \subsection{The Spreadsheet}
 
-\
+The bot is designed to interface with Google Sheets spreadsheets in
+the following format. Note the names being on column C onward, and
+the dates being row 4 onward.
+\begin{center}
+\begin{tabular}{|c||c|c|c|c}
+\hline 
+ & \begin{turn}{90}
+Total Meeting Hours
+\end{turn} & \begin{turn}{90}
+Slack username
+\end{turn} & \begin{turn}{90}
+Slack username
+\end{turn} & . . . \tabularnewline
+\hline 
+Member Total &  &  &  & . . .\tabularnewline
+\hline 
+\hline 
+Extra &  &  &  & . . .\tabularnewline
+\hline 
+MM/DD/YYYY &  &  &  & . . .\tabularnewline
+\hline 
+. . . & . . . & . . . & . . . & . . .\tabularnewline
+\end{tabular}
+\par\end{center}
 
-The bot is designed to interface with spreadsheets in the following format. Note the names being on column C onward, and the dates being row 4 onward.
-
-\begin{center} \begin{tabular}{|c||c|c|c|c} \hline
-	& \begin{turn}{90}Total Meeting Hours\end{turn} & \begin{turn}{90}Slack username\end{turn} & \begin{turn}{90}Slack username\end{turn} & . . . \\ \hline
-	Percent & & & & . . .\\ \hline
-	Last 10\% & & & & . . .\\ \hline \hline
-	& & & & . . .\\ \hline
-	. . .&. . .&. . .&. . .&
-\end{tabular} \end{center}
-
-This can be modified by changing every instance of ``4" and ``C" in \texttt{main.py}'s usage of table ranges.
+This can be modified by changing every instance of ``4'' and ``C''
+in the code's usage of table ranges. Non-date values can be used for
+the date column, but to integrate with the bot they should include
+the date at the beginning and separate it from all other cell contents
+with a space character (eg, ``8/27/2024 (Robonanza)''). The ``extra''
+row may be used for anything.
 
 \subsection{The \texttt{keys} File}
 
-\
-
-The \texttt{keys} file is a set of keys and values in the below format, requiring the below keys. Values are replaced with placeholders.
+The \texttt{keys} file contains a set of keys and values in the below
+format, requiring the below keys. Values are omitted, except for the
+leading differentiator of the Slack tokens. 
 \begin{verbatim}
 APP_TOKEN=xapp-...
 BOT_TOKEN=xoxb-...
-SIGNING_SECRET=...
-SHEET=   .   .   .
-TABLE=   .   .   .
-ADMINS=ID ID ID ID
+SIGNING_SECRET=
+SHEET=
+MEETING_TABLE=
+OUTREACH_TABLE=
+MEETING_REQ=
+OUTREACH_REQ=
+ADMINS=
 \end{verbatim}
-
-The values can be found in the following ways:
+The values can be found in the following ways: 
 \begin{itemize}
-	\item \texttt{APP\_TOKEN}: Slack apps dashboard $\to$ Basic Information $\to$ App-Level Tokens $\to$ Token
-	\item \texttt{BOT\_TOKEN}: Slack apps dashboard $\to$ OAuth \& Permissions $\to$ Bot User OAuth Token
-	\item \texttt{SIGNING\_SECRET}: Slack apps dashboard $\to$ Basic Information $\to$ App Credentials $\to$ Signing Secret
-	\item \texttt{SHEET}: Google Sheets spreadsheet $\to$ Section in URL between \texttt{spreadsheets/d/} and \texttt{/edit}
-	\item \texttt{TABLE}: Google Sheets spreadsheet $\to$ Text on the highlighted tab along the bottom of the website
-	\item \texttt{ADMINS}: Space-separated list of the Slack usernames of people who have permission to administrate
+\item \texttt{APP\_TOKEN}: Slack apps dashboard $\to$ Basic Information
+$\to$ App-Level Tokens $\to$ Token 
+\item \texttt{BOT\_TOKEN}: Slack apps dashboard $\to$ OAuth \& Permissions
+$\to$ Bot User OAuth Token 
+\item \texttt{SIGNING\_SECRET}: Slack apps dashboard $\to$ Basic Information
+$\to$ App Credentials $\to$ Signing Secret 
+\item \texttt{SHEET}: Google Sheets spreadsheet $\to$ Section in URL between
+\texttt{spreadsheets/d/} and \texttt{/edit} 
+\item \texttt{MEETING\_TABLE}, OUTREACH\_TABLE: Google Sheets spreadsheet
+$\to$ Text on the highlighted tab along the bottom of the website 
+\item \texttt{MEETING\_REQ}, \texttt{OUTREACH\_REQ}: The numbers that user
+attendance total should be compared against. If the table's ``member
+total'' row measures attendance as a percentage, then the percentage
+(number between 0 and 100) should be used, omitting the ``\%'' symbol.
+\item \texttt{ADMINS}: Space-separated list of the Slack usernames of people
+who have permission to administrate.
 \end{itemize}
+The file is only read when starting the bot, so any alterations made
+while the bot is running will be lost. One should instead use the
+graphical settings menu described in section 3.2 (``Settings'').
 
 \subsection{The \texttt{credentials.json} File and Google Authentication}
 
-\
-
-Go through the ``Set up your environment" section of \href{https://developers.google.com/sheets/api/quickstart/python#set-up-environment}{Google's Python quickstart document}. Put the resultant \texttt{credentials.json} file in the same directory as the Python files. When you first run the program (or whenever you lack a \texttt{manifest.json}), you will be prompted by Google's authentication flow. Open the stated URL and log in with a Google account that has access to the spreadsheet.
+Go through the ``Set up your environment'' section of \href{https://developers.google.com/sheets/api/quickstart/python\#set-up-environment}{Google's Python quickstart document}.
+Put the resultant \texttt{credentials.json} file in the same directory
+as the Python files. When you first run the program (or whenever you
+lack a \texttt{manifest.json}), you will be prompted by Google's authentication
+flow. Open the stated URL and log in with a Google account that has
+access to the spreadsheet.
 
 \section{Administration}
 
-/
-
-Only Slack accounts with their usernames listed in \texttt{ADMINS} may use administration commands.
+Only Slack accounts with their usernames listed in \texttt{ADMINS}
+may use the meeting modal and settings.
 
 \subsection{The \texttt{Meeting} Modal}
 
-\
+For user input, the \texttt{Meeting} modal is identical to the \texttt{Attend}
+modal. If the date isn't in the first column, the bot will add it.
+Otherwise, it will select the row that the date is in. Finally, it
+will add the hours to the second column (``Total Meeting Hours'').
 
-For user input, the \texttt{Meeting} modal is identical to the \texttt{Attend} modal. If the date isn't in the first column, the bot will add it. Otherwise, it will select the row that the date is in. Finally, it will add the hours to the second column (Total Meeting Hours).
+\subsection{Settings}
 
-\subsection{The \texttt{/set sheet} and \texttt{/set table} Commands}
-
-\
-
-Take one argument after the sub-command (``sheet" or ``table"). Change the \texttt{SHEET} and \texttt{TABLE} values of the settings to that argument.
-
-\subsection{The \texttt{/set op} and \texttt{/set deop} Commands}
-
-\
-
-Take one slack username as an argument after the sub-command (``op" or ``deop"). Add someone to or remove someone from the list in the \texttt{ADMINS} setting value.
-
+The settings section of the home screen is only shown to admins. It
+includes text fields which may be used to alter the values of the
+\texttt{SHEET}, \texttt{MEETING\_TABLE}, \texttt{OUTREACH\_TABLE},
+\texttt{MEETING\_REQ}, \texttt{OUTREACH\_REQ}, and \texttt{ADMINS}
+keys in the \texttt{keys} file. These settings are also changed in
+the running instance of the bot.
 \end{document}
