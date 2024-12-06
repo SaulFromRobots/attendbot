@@ -8,7 +8,7 @@ def meetingDatetime(ack, shortcut, client, kind):
 		view = {
 			"type": "modal",
 			"callback_id": kind+"-callback",
-			"title": { "type": "plain_text", "text": kind },
+			"title": { "type": "plain_text", "text": kind.replace("_"," ").title() },
 			"submit": { "type": "plain_text", "text": "Submit" },
 			"close": { "type": "plain_text", "text": "Cancel" },
 			"blocks": [
@@ -46,8 +46,8 @@ def meetingDatetime(ack, shortcut, client, kind):
 		}
 	)
 
-def home(client, event, user, percent):
-	req = keys["MEETING_REQ"].split(",")
+def home(client, event, user, Mattendance):
+	Mreq = keys["MEETING_REQ"].split(",")
 	blocks = [
 		{
 			"type": "header",
@@ -55,13 +55,13 @@ def home(client, event, user, percent):
 		},
 		{
 			"type": "section",
-			"text": { "type": "plain_text", "text": f"Attendance: {percent}%" }
+			"text": { "type": "plain_text", "text": f"Attendance: {Mattendance}%" }
 		},
 		{
 			"type": "section",
 			"fields": [
-				{ "type": "plain_text", "text": "Eligible for build season: "+str(percent >= int(req[0])) },
-				{ "type": "plain_text", "text": "Eligible for travel team: "+str(percent >= int(req[1])) }
+				{ "type": "plain_text", "text": "Eligible for build season: "+str(Mattendance >= int(Mreq[0])) },
+				{ "type": "plain_text", "text": "Eligible for travel team: "+str(Mattendance >= int(Mreq[1])) }
 			]
 		}
 	] + (
@@ -75,6 +75,6 @@ def home(client, event, user, percent):
 			"action_id": "save-setting",
 			"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
 		}
-	} for item in ["SHEET", "TABLE", "ADMINS", "MEETING_REQ"] ] if user in keys["ADMINS"] else [])
+	} for item in ["SHEET", "MEETING_TABLE", "OUTREACH_TABLE", "MEETING_REQ", "OUTREACH_REQ", "ADMINS", ] ] if user in keys["ADMINS"] else [])
 
 	client.views_publish(user_id=event["user"], view = { "type": "home", "blocks": blocks})

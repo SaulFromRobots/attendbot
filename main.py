@@ -26,13 +26,13 @@ def attend(ack, body, view, client, say): # bolt commands need to be passed as a
 	
 	message = lambda msg: say(text=msg, channel=body["user"]["id"])
 
-	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['TABLE']}!C1:1"})["values"][0].index(user)+3)
+	try: col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['MEETING_TABLE']}!C1:1"})["values"][0].index(user)+3)
 	except: return message("Something went wrong finding your name in the spreadsheet.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['MEETING_TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (needWriteDate): return message(f"{day} is not on the spreadsheet, attendance is not being counted for that day.")
 
-	sheetsAPI("update",{"range":f"{keys['TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
+	sheetsAPI("update",{"range":f"{keys['MEETING_TABLE']}!{col}{row}:{col}{row}","valueInputOption":"RAW","body":{"values":[[hours]]}})
 	return message(f"You attended on {day} for {hours} hours.")
 
 @app.view("declare_meeting-callback")
@@ -46,17 +46,17 @@ def meeting(ack, body, view, client, say):
 	except AttributeError: return message("You formatted the message incorrectly.")
 	except ValueError: return message("That isn't a real time. Please send real time.")
 
-	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
+	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{keys['MEETING_TABLE']}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (not needWriteDate): message(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
 
-	sheetsAPI("update",{"range":f"{keys['TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
+	sheetsAPI("update",{"range":f"{keys['MEETING_TABLE']}!A{row}:B{row}","valueInputOption":"RAW","body":{"values":[[day, hrs]]}})
 	message(f"{day} added to the spreadsheet.")
 
 @app.event("app_home_opened")
 def update_home_tab(client, event):
 	user = client.users_info(user=event["user"])["user"]["name"]
-	col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['TABLE']}!C1:1"})["values"][0].index(user)+3)
-	percent = float(sheetsAPI("get",{"range":f"{keys['TABLE']}!{col}2"})["values"][0][0].removesuffix("%"))
+	col = getInfo.letter(sheetsAPI("get",{"range":f"{keys['MEETING_TABLE']}!C1:1"})["values"][0].index(user)+3)
+	percent = float(sheetsAPI("get",{"range":f"{keys['MEETING_TABLE']}!{col}2"})["values"][0][0].removesuffix("%"))
 
 	modal.home(client, event, user, percent)
 
