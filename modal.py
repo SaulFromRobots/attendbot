@@ -15,6 +15,25 @@ def meetingDatetime(ack, shortcut, client, kind):
 				{
 					"type": "input",
 					"element": {
+						"type": "radio_buttons",
+						"options": [
+							{
+								"text": { "type": "plain_text","text": "Regular meeting" },
+								"value": "MEETING"
+							},
+							{
+								"text": {"type": "plain_text","text": "Community outreach" },
+								"value": "OUTREACH"
+							}
+						],
+						"initial_option": { "text": { "type": "plain_text","text": "Regular meeting" }, "value": "MEETING" },
+						"action_id": "meeting-type"
+					},
+					"label": {"type": "plain_text","text": "Meeting type" }
+				},
+				{
+					"type": "input",
+					"element": {
 						"type": "datepicker",
 						"initial_date": datetime.today().strftime("%Y-%m-%d"),
 						"placeholder": { "type": "plain_text", "text": "Select a date" },
