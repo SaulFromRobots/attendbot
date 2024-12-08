@@ -1,12 +1,12 @@
 from datetime import datetime, date, time
 
-def dayHours(modal_response): # Extract the day and hours from the modal response
-	response = dict(map(dict.popitem,modal_response.values()))
-	day = "{1}/{2}/{0}".format(*(response["datepicker-action"]["selected_date"].split("-"))) # get the day in the format used by the sheet 
-	start = datetime.strptime(response["timepicker-arrive-action"]["selected_time"], r"%H:%M")
-	end = datetime.strptime(response["timepicker-leave-action"]["selected_time"], r"%H:%M")
+def getModalInfo(response): # Extract the day, hours, and meeting kind from the modal response
+	day = "{1}/{2}/{0}".format(*(response["datepicker-id"]["datepicker-action"]["selected_date"].split("-"))) # get the day in the format used by the sheet 
+	start = datetime.strptime(response["timepicker-arrive-id"]["timepicker-arrive-action"]["selected_time"], r"%H:%M")
+	end = datetime.strptime(response["timepicker-leave-id"]["timepicker-leave-action"]["selected_time"], r"%H:%M")
 	hours = ((end-start).seconds / (60**2)) - (start < datetime.combine(date.today(), time(hour=12)) < end) # get the number of hours the user attended the meeting, subtracting lunch if required
-	return day, hours
+	kind = response["meeting-type-id"]["meeting-type-action"]["selected_option"]["value"]
+	return day, hours, kind
 
 def letter(num): # convert number into sheets-style letter index (my beloathed)
 	chars = []

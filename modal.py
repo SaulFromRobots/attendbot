@@ -1,7 +1,7 @@
 from datetime import datetime
 from settings import keys
 
-def meetingDatetime(ack, shortcut, client, kind):
+def meetingDatetime(ack, shortcut, client, kind, sheetsCreds):
 	ack()
 	client.views_open(
 		trigger_id=shortcut["trigger_id"],
@@ -14,25 +14,18 @@ def meetingDatetime(ack, shortcut, client, kind):
 			"blocks": [
 				{
 					"type": "input",
+					"block_id": "meeting-type-id",
 					"element": {
 						"type": "radio_buttons",
-						"options": [
-							{
-								"text": { "type": "plain_text","text": "Regular meeting" },
-								"value": "MEETING"
-							},
-							{
-								"text": {"type": "plain_text","text": "Community outreach" },
-								"value": "OUTREACH"
-							}
-						],
-						"initial_option": { "text": { "type": "plain_text","text": "Regular meeting" }, "value": "MEETING" },
-						"action_id": "meeting-type"
+						"options": list(map(lambda s: { "text": { "type": "plain_text","text": s["properties"]["title"] }, "value": s["properties"]["title"] }, sheetsCreds.get(spreadsheetId=keys["SHEET"]).execute()["sheets"])),
+						
+						"action_id": "meeting-type-action"
 					},
 					"label": {"type": "plain_text","text": "Meeting type" }
 				},
 				{
 					"type": "input",
+					"block_id": "datepicker-id",
 					"element": {
 						"type": "datepicker",
 						"initial_date": datetime.today().strftime("%Y-%m-%d"),
@@ -43,6 +36,7 @@ def meetingDatetime(ack, shortcut, client, kind):
 				},
 				{
 					"type": "input",
+					"block_id": "timepicker-arrive-id",
 					"element": {
 						"type": "timepicker",
 						"initial_time": "12:00",
@@ -53,6 +47,7 @@ def meetingDatetime(ack, shortcut, client, kind):
 				},
 				{
 					"type": "input",
+					"block_id": "timepicker-leave-id",
 					"element": {
 						"type": "timepicker",
 						"initial_time": datetime.today().strftime("%H:%M"),
@@ -65,31 +60,31 @@ def meetingDatetime(ack, shortcut, client, kind):
 		}
 	)
 
-def home(client, event, user, Mattendance, Oattendance):
-	Mreq = keys["MEETING_REQ"].split(",")
-	MattendanceFloat = float(Mattendance.removesuffix("%"))
-	Oreq = keys["OUTREACH_REQ"].split(",")
-	OattendanceFloat = float(Oattendance.removesuffix("%"))
+def home(client, event, user):
+	#Mreq = keys["MEETING_REQ"].split(",")
+	#MattendanceFloat = float(Mattendance.removesuffix("%"))
+	#Oreq = keys["OUTREACH_REQ"].split(",")
+	#OattendanceFloat = float(Oattendance.removesuffix("%"))
 	blocks = [
 		{
 			"type": "header",
 			"text": { "type": "plain_text", "text": "Attendance" }
-		},
-		{
-			"type": "section",
-			"text": { "type": "plain_text", "text": "Meeting: "+Mattendance }
-		},
-		{
-			"type": "section",
-			"text": { "type": "plain_text", "text": "Outreach: "+Oattendance }
-		},
-		{
-			"type": "section",
-			"fields": [
-				{ "type": "plain_text", "text": "Eligible for build season: "+str(MattendanceFloat >= int(Mreq[0]) and OattendanceFloat >= int(Oreq[0])) },
-				{ "type": "plain_text", "text": "Eligible for travel team: "+str(MattendanceFloat >= int(Mreq[1]) and OattendanceFloat >= int(Oreq[1])) }
-			]
 		}
+	#	{
+	#		"type": "section",
+	#		"text": { "type": "plain_text", "text": "Meeting: "+Mattendance }
+	#	},
+	#	{
+	#		"type": "section",
+	#		"text": { "type": "plain_text", "text": "Outreach: "+Oattendance }
+	#	},
+	#	{
+	#		"type": "section",
+	#		"fields": [
+	#			{ "type": "plain_text", "text": "Eligible for build season: "+str(MattendanceFloat >= int(Mreq[0]) and OattendanceFloat >= int(Oreq[0])) },
+	#			{ "type": "plain_text", "text": "Eligible for travel team: "+str(MattendanceFloat >= int(Mreq[1]) and OattendanceFloat >= int(Oreq[1])) }
+	#		]
+	#	}
 	] + (
 		[{ "type": "header", "text": { "type": "plain_text", "text": "Admin Settings" } }] + [{
 		"type": "input",
@@ -101,6 +96,6 @@ def home(client, event, user, Mattendance, Oattendance):
 			"action_id": "save-setting",
 			"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
 		}
-	} for item in ["SHEET", "MEETING_TABLE", "OUTREACH_TABLE", "MEETING_REQ", "OUTREACH_REQ", "ADMINS", ] ] if user in keys["ADMINS"] else [])
+	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in keys["ADMINS"] else [])
 
 	client.views_publish(user_id=event["user"], view = { "type": "home", "blocks": blocks})
