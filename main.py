@@ -51,11 +51,12 @@ def meeting(ack, body, view, client, say):
 @app.event("app_home_opened")
 def update_home_tab(client, event):
 	user = client.users_info(user=event["user"])["user"]["name"]
-	#col = [ getInfo.letter(sheetsAPI("get",{"range":f"{keys[t+'_TABLE']}!C1:1"})["values"][0].index(user)+3) for t in [ "MEETING", "OUTREACH" ] ]
-	#meeting = sheetsAPI("get",{"range":f"{keys['MEETING_TABLE']}!{col[0]}2"})["values"][0][0]
-	#outreach = sheetsAPI("get",{"range":f"{keys['OUTREACH_TABLE']}!{col[1]}2"})["values"][0][0]
+	reqs = { k:(float(v.split(",")[0]),float(v.split(",")[1])) for k,v in map(lambda x: x.split(":"), keys["REQS"])}
+	user_col = { t: getInfo.letter(sheetsAPI("get",{"range":f"{t}!C1:1"})["values"][0].index(user)+3) for t in reqs.keys() }
+	user_attendance = { t: sheetsAPI("get",{"range":f"{t}!{user_col[t]}2"})["values"][0][0] for t in user_col.keys() }
+	user_attendance = { k:(float(v.removesuffix("%")),v) for k,v in user_attendance.items() }
 
-	modal.home(client, event, user)
+	modal.home(client, event, user, reqs, user_attendance)
 
 @app.action("save-setting")
 def processSetting(ack, body, say):
@@ -65,7 +66,7 @@ def processSetting(ack, body, say):
 	setting = body["actions"][0]["block_id"]
 	value = body["actions"][0]["value"]
 	keys[setting] = value if type(keys[setting]) is str else set(value.split())
-	with open("keys", "w") as f: f.writelines([k+"="+(v if type(v) is str else " ".join(v))+"\n" for k,v in keys.items()])
+	with open("keys", "w") as f: f.writelines([k+"="+(v if type(v) is str else ";".join(v))+"\n" for k,v in keys.items()])
 	say(text=f"Setting {setting} is now {value}.", channel=body["user"]["id"])
 
 if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it

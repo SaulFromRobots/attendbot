@@ -7,8 +7,8 @@ from googleapiclient.discovery import build
 # read and open basic keys, parsing them as if they where in the dotenv format
 keysFile = open("./keys", "r") # requires BOT_TOKEN, SIGNING_SECRET, and APP_TOKEN
 keys = { x.split("=")[0]: x.split("=")[1].replace("\n","") for x in keysFile.readlines() }
-keys['ADMINS'] = set(keys['ADMINS'].split(" ")) # use a set for admin list
-keys['REQS'] = set(keys['REQS'].split(" ")) # use a set for req list
+keys['ADMINS'] = set(keys['ADMINS'].split(";")) # use a set for admin list
+keys['REQS'] = set(keys['REQS'].split(";")) # use a set for req list
 keysFile.close() # forgetting to do this leaks something
 
 # process google's strange secret system

@@ -60,31 +60,26 @@ def meetingDatetime(ack, shortcut, client, kind, sheetsCreds):
 		}
 	)
 
-def home(client, event, user):
-	#Mreq = keys["MEETING_REQ"].split(",")
-	#MattendanceFloat = float(Mattendance.removesuffix("%"))
-	#Oreq = keys["OUTREACH_REQ"].split(",")
-	#OattendanceFloat = float(Oattendance.removesuffix("%"))
+def home(client, event, user, reqs, user_attendance):
+	eligible = [ [ user_attendance[n][0]>=reqs[n][i] for n in reqs.keys() ] for i in range(2) ]
 	blocks = [
 		{
 			"type": "header",
 			"text": { "type": "plain_text", "text": "Attendance" }
 		}
-	#	{
-	#		"type": "section",
-	#		"text": { "type": "plain_text", "text": "Meeting: "+Mattendance }
-	#	},
-	#	{
-	#		"type": "section",
-	#		"text": { "type": "plain_text", "text": "Outreach: "+Oattendance }
-	#	},
-	#	{
-	#		"type": "section",
-	#		"fields": [
-	#			{ "type": "plain_text", "text": "Eligible for build season: "+str(MattendanceFloat >= int(Mreq[0]) and OattendanceFloat >= int(Oreq[0])) },
-	#			{ "type": "plain_text", "text": "Eligible for travel team: "+str(MattendanceFloat >= int(Mreq[1]) and OattendanceFloat >= int(Oreq[1])) }
-	#		]
-	#	}
+	] + [
+		{
+			"type": "section",
+			"text": { "type": "plain_text", "text": t+": "+v[1] }
+		} for t,v in user_attendance.items()
+	] + [
+		{
+			"type": "section",
+			"fields": [
+				{ "type": "plain_text", "text": "Eligible for build season: "+str(all(eligible[0])) },
+				{ "type": "plain_text", "text": "Eligible for travel team: "+str(all(eligible[1])) }
+			]
+		}
 	] + (
 		[{ "type": "header", "text": { "type": "plain_text", "text": "Admin Settings" } }] + [{
 		"type": "input",
@@ -94,7 +89,7 @@ def home(client, event, user):
 		"element": {
 			"type": "plain_text_input",
 			"action_id": "save-setting",
-			"initial_value": keys[item] if type(keys[item]) is str else " ".join(keys[item])
+			"initial_value": keys[item] if type(keys[item]) is str else ";".join(keys[item])
 		}
 	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in keys["ADMINS"] else [])
 
