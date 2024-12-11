@@ -1,5 +1,6 @@
 from datetime import datetime
-from settings import keys
+from settings import opts
+from json import dumps
 
 def meetingDatetime(ack, shortcut, client, kind, sheetsCreds):
 	ack()
@@ -17,7 +18,7 @@ def meetingDatetime(ack, shortcut, client, kind, sheetsCreds):
 					"block_id": "meeting-type-id",
 					"element": {
 						"type": "radio_buttons",
-						"options": list(map(lambda s: { "text": { "type": "plain_text","text": s["properties"]["title"] }, "value": s["properties"]["title"] }, sheetsCreds.get(spreadsheetId=keys["SHEET"]).execute()["sheets"])),
+						"options": list(map(lambda s: { "text": { "type": "plain_text","text": s["properties"]["title"] }, "value": s["properties"]["title"] }, sheetsCreds.get(spreadsheetId=opts["SHEET"]).execute()["sheets"])),
 						
 						"action_id": "meeting-type-action"
 					},
@@ -89,8 +90,8 @@ def home(client, event, user, reqs, user_attendance):
 		"element": {
 			"type": "plain_text_input",
 			"action_id": "save-setting",
-			"initial_value": keys[item] if type(keys[item]) is str else ";".join(keys[item])
+			"initial_value": dumps(opts[item])
 		}
-	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in keys["ADMINS"] else [])
+	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in opts["ADMINS"] else [])
 
 	client.views_publish(user_id=event["user"], view = { "type": "home", "blocks": blocks})

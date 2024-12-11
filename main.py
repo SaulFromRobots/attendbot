@@ -1,14 +1,15 @@
 from slack_bolt import App
 from slack_bolt.adapter.socket_mode import SocketModeHandler
-from settings import keys, sheetsCreds
+from settings import opts, sheetsCreds
 import getInfo
 import modal
+from json import dumps, loads
 
 # create a lambda to simplify the madness
-sheetsAPI = lambda method,args:getattr(sheetsCreds.values(),method)(**({"spreadsheetId":keys["SHEET"]}|args)).execute()
+sheetsAPI = lambda method,args:getattr(sheetsCreds.values(),method)(**({"spreadsheetId":opts["SHEET"]}|args)).execute()
 
 # declare a slack app
-app = App(token=keys["BOT_TOKEN"], signing_secret=keys["SIGNING_SECRET"])
+app = App(token=opts["BOT_TOKEN"], signing_secret=opts["SIGNING_SECRET"])
 
 @app.shortcut("attend")
 def attend_modal(ack, shortcut, client): modal.meetingDatetime(ack, shortcut, client, "attend", sheetsCreds)
@@ -40,7 +41,7 @@ def meeting(ack, body, view, client, say):
 	user = body["user"]["name"]
 	day, hrs, table = getInfo.getModalInfo(view["state"]["values"])
 
-	if (user not in keys['ADMINS']): return message(f"You are not one of the admins ({keys['ADMINS']}).")
+	if (user not in opts['ADMINS']): return message(f"You are not one of the admins ({opts['ADMINS']}).")
 
 	row, needWriteDate = getInfo.findDayRow(sheetsAPI("get", {"range":f"{table}!A4:A","majorDimension":"COLUMNS"}), day)
 	if (not needWriteDate): message(f"{day} is already row {row} in the spreadsheet, so I'll just change the total meeting hours.")
@@ -51,22 +52,21 @@ def meeting(ack, body, view, client, say):
 @app.event("app_home_opened")
 def update_home_tab(client, event):
 	user = client.users_info(user=event["user"])["user"]["name"]
-	reqs = { k:(float(v.split(",")[0]),float(v.split(",")[1])) for k,v in map(lambda x: x.split(":"), keys["REQS"])}
-	user_col = { t: getInfo.letter(sheetsAPI("get",{"range":f"{t}!C1:1"})["values"][0].index(user)+3) for t in reqs.keys() }
+	user_col = { t: getInfo.letter(sheetsAPI("get",{"range":f"{t}!C1:1"})["values"][0].index(user)+3) for t in opts["REQS"].keys() }
 	user_attendance = { t: sheetsAPI("get",{"range":f"{t}!{user_col[t]}2"})["values"][0][0] for t in user_col.keys() }
 	user_attendance = { k:(float(v.removesuffix("%")),v) for k,v in user_attendance.items() }
 
-	modal.home(client, event, user, reqs, user_attendance)
+	modal.home(client, event, user, opts["REQS"], user_attendance)
 
 @app.action("save-setting")
 def processSetting(ack, body, say):
 	ack()
 	user = body["user"]["name"]
-	if user not in keys['ADMINS']: return say(text="You are not an admin!", channel=body["user"]["id"])
+	if user not in opts['ADMINS']: return say(text="You are not an admin!", channel=body["user"]["id"])
 	setting = body["actions"][0]["block_id"]
 	value = body["actions"][0]["value"]
-	keys[setting] = value if type(keys[setting]) is str else set(value.split())
-	with open("keys", "w") as f: f.writelines([k+"="+(v if type(v) is str else ";".join(v))+"\n" for k,v in keys.items()])
+	opts[setting] = loads(value)
+	with open("options.json", "w") as f: f.write(dumps(opts), indent=4)
 	say(text=f"Setting {setting} is now {value}.", channel=body["user"]["id"])
 
-if __name__ == "__main__": SocketModeHandler(app, keys["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
+if __name__ == "__main__": SocketModeHandler(app, opts["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it

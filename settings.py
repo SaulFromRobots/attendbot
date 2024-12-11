@@ -3,13 +3,11 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from json import loads
 
-# read and open basic keys, parsing them as if they where in the dotenv format
-keysFile = open("./keys", "r") # requires BOT_TOKEN, SIGNING_SECRET, and APP_TOKEN
-keys = { x.split("=")[0]: x.split("=")[1].replace("\n","") for x in keysFile.readlines() }
-keys['ADMINS'] = set(keys['ADMINS'].split(";")) # use a set for admin list
-keys['REQS'] = set(keys['REQS'].split(";")) # use a set for req list
-keysFile.close() # forgetting to do this leaks something
+optsFile = open("./options.json", "r") # requires BOT_TOKEN, SIGNING_SECRET, and APP_TOKEN
+opts = loads(optsFile.read())
+optsFile.close() # forgetting to do this leaks something
 
 # process google's strange secret system
 SCOPES = [ "https://www.googleapis.com/auth/spreadsheets" ] # If modifying these scopes, delete the file sheets.json
