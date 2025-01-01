@@ -4,12 +4,16 @@ from settings import opts, sheetsCreds
 import getInfo
 import modal
 from json import dumps, loads
+from sys import exc_info
 
 # create a lambda to simplify the madness
 sheetsAPI = lambda method,args:getattr(sheetsCreds.values(),method)(**({"spreadsheetId":opts["SHEET"]}|args)).execute()
 
 # declare a slack app
 app = App(token=opts["BOT_TOKEN"], signing_secret=opts["SIGNING_SECRET"])
+
+# "log" errors
+crashErrors = []
 
 @app.shortcut("attend")
 def attend_modal(ack, shortcut, client): modal.meetingDatetime(ack, shortcut, client, "attend", sheetsCreds)
@@ -56,7 +60,7 @@ def update_home_tab(client, event):
 	user_attendance = { t: sheetsAPI("get",{"range":f"{t}!{user_col[t]}2"})["values"][0][0] for t in user_col.keys() }
 	user_attendance = { k:(float(v.removesuffix("%")),v) for k,v in user_attendance.items() }
 
-	modal.home(client, event, user, opts["REQS"], user_attendance)
+	modal.home(client, event, user, opts["REQS"], crashErrors, user_attendance)
 
 @app.action("save-setting")
 def processSetting(ack, body, say):
@@ -69,4 +73,12 @@ def processSetting(ack, body, say):
 	with open("options.json", "w") as f: f.write(dumps(opts), indent=4)
 	say(text=f"Setting {setting} is now {value}.", channel=body["user"]["id"])
 
-if __name__ == "__main__": SocketModeHandler(app, opts["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
+if __name__ == "__main__":
+	while True:
+		try:
+			SocketModeHandler(app, opts["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
+		except KeyboardInterrupt:
+			exit()
+		except:
+			print("crash!")
+			crashErrors.append(exc_info()[0])

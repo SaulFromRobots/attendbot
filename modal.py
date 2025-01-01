@@ -61,7 +61,7 @@ def meetingDatetime(ack, shortcut, client, kind, sheetsCreds):
 		}
 	)
 
-def home(client, event, user, reqs, user_attendance):
+def home(client, event, user, reqs, errors, user_attendance):
 	eligible = [ [ user_attendance[n][0]>=reqs[n][i] for n in reqs.keys() ] for i in range(2) ]
 	blocks = [
 		{
@@ -92,6 +92,12 @@ def home(client, event, user, reqs, user_attendance):
 			"action_id": "save-setting",
 			"initial_value": dumps(opts[item])
 		}
-	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in opts["ADMINS"] else [])
+	} for item in ["SHEET", "REQS", "ADMINS", ] ] if user in opts["ADMINS"] else []) + [
+		{"type": "header", "text": { "type": "plain_text", "text": "Errors" }},
+		{
+			"type": "section",
+			"text": { "type": "plain_text", "text": "\n".join(errors) if len(errors) != 0 else "No crashes" }
+		}
+	]
 
 	client.views_publish(user_id=event["user"], view = { "type": "home", "blocks": blocks})
