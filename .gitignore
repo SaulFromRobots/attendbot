@@ -1,4 +1,4 @@
-options.json
-credentials.json
-sheets.json
+conf/options.json
+conf/credentials.json
+conf/sheets.json
 __pycache__
