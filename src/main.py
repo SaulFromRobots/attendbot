@@ -73,7 +73,7 @@ def processSetting(ack, body, say):
 	with open("options.json", "w") as f: f.write(dumps(opts), indent=4)
 	say(text=f"Setting {setting} is now {value}.", channel=body["user"]["id"])
 
-if __name__ == "__main__":
+def run():
 	while True:
 		try:
 			SocketModeHandler(app, opts["APP_TOKEN"]).start() # socket mode is superior in every way dw abt it
@@ -82,3 +82,6 @@ if __name__ == "__main__":
 		except:
 			print("crash!")
 			crashErrors.append(exc_info()[0])
+
+if __name__ == "__main__":
+	run()
