@@ -20,7 +20,10 @@
 			image = pkgs.dockerTools.buildImage {
 				name = "attendbot";
 				tag = "latest";
-				config.Cmd = [ (default+"/bin/attendbot") ];
+				config = {
+					Cmd = [ (default+"/bin/attendbot") ];
+					Env = [ "SSL_CERT_FILE=${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt" ];
+				};
 			};
 		};
 	};
