@@ -6,4 +6,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: cachix/install-nix-action@v27
-    - run: nix build '.#image'
+    - name: build
+      run: nix build .#image
+    - uses: actions/upload-artifact@v4.5.0
+      with:
+        name: DockerImage
+        path: ./result
+        if-no-files-found: error
